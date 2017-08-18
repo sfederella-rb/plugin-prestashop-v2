@@ -1,0 +1,50 @@
+h1{
+	color: #5d6f78;
+	font-size: 23px;
+	margin: 10px 0 22px 0;
+}
+.paybox{ margin:0 0 0 15px;}
+.paybox form .row { margin-bottom: 20px;}
+.paybox form .row .colx2 { display: inline-block; vertical-align: top;}
+.paybox form .row .colx3 { display: inline-block; vertical-align: top;}
+.paybox form .row .colx2.col1 { width: 50%; }
+.paybox form .row .colx2.col2 { width: 47%; }
+.paybox form .row .colx3.col1 { width: 22%; }
+.paybox form .row .colx3.col2 { width: 28%; }
+.paybox form .row .colx3.col3 { width: 47%; }
+.input-lenght{ width:20%; }
+.input-lenght-short{ width:100%; }
+.button-lenght{ width: 13%;}
+.button{
+	border-color: #74d578;
+}
+.left{ float:left; }
+.right{ float:right; }
+.clear{ clear:both; }
+.date label{
+	margin:0 0 10px 0;
+}
+.security{
+	margin:0 0 0 0;
+}
+#divCardExpirationDateDDLs{
+	width:173px;
+}
+#spnCardTypeDetected{
+	position: absolute;
+    left: 262px;
+    top: 68px;
+}
+select{
+    padding: 3px 5px;
+    height: 33px;
+    -webkit-box-shadow: none;
+    box-shadow: none;
+    border: 1px solid #d6d4d4;
+    font-size: 13px;
+    line-height: 1.42857;
+    color: #9c9b9b;
+}
+.form-control{
+    height: 33px;
+}

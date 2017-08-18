@@ -1,0 +1,80 @@
+.wrapper-selects{
+	margin:11px 0 45px 0;
+	width:150px;
+}
+
+.title{
+	font-weight:bold;
+}
+
+.confirm_button{
+   pointer-events: none;
+   cursor: default;
+}
+
+#paymentm_select{
+	/*display:none;*/
+}
+
+#entity{
+	display:block;
+}
+
+
+#quotes{
+	display:block;
+}
+
+/*#payment_method_select, #entities_select, #quotes_select{
+	float:left;
+}*/
+
+#entitybox, #installmentbox{
+	padding:10px 0 0 0;
+}
+
+.clear{
+	clear:both;
+}
+
+select{
+	padding: 3px 5px;
+    height: 33px;
+    -webkit-box-shadow: none;
+    box-shadow: none;
+    border: 1px solid #d6d4d4;
+    font-size: 13px;
+	line-height: 1.42857;
+	color: #9c9b9b;
+	margin:4px 0 0 0;
+}
+
+th {
+    border-bottom:1px solid #d6d4d4;
+}
+
+.td-align-right{
+	text-align: right;
+}
+
+.td-align-center{
+	text-align: center;
+}
+
+table td, table th{
+	padding-left: 25px;
+	padding-right: 25px;
+}
+
+.right{		
+	float:right;
+}
+/*
+.left{
+	float:left;
+}
+*/
+#infobox{
+	height:50px;
+	width:150px;
+}
