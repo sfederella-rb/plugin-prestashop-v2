@@ -20,7 +20,8 @@ Plug-in para la integraci&oacute;n con pasarela de pago <strong>Decidir</strong>
 <a name="consideracionesgenerales"></a>
 ## Consideraciones Generales
 El plug in de pagos de <strong>Decidir</strong>, provee a las tiendas Prestashop de un nuevo m&eacute;todo de pago, integrando la tienda al gateway de pago.
-La versi&oacute;n de este plug in esta testeada en PHP 5.3 en adelante y Prestashop 1.6
+La versi&oacute;n de este plug in esta testeada en PHP 5.3 en adelante y Prestashop 1.6.
+Es sumamente importante que se compare con las necesidades de negocio para evaluar la utilización del mismo o recurrir a una integración vía SDK.
 
 <a name="instalacion"></a>
 ## Instalaci&oacute;n
