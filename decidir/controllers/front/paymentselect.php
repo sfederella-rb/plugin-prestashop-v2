@@ -16,7 +16,7 @@ Class DecidirPaymentSelect
     }
 
 	public function getInstallentByPaymentId($pMethod){
-        $sql = 'SELECT * FROM ' . _DB_PREFIX_ . 'interes WHERE payment_method IN (SELECT id_decidir FROM ' . _DB_PREFIX_ . 'medios WHERE id_medio ='.$pMethod.')';
+        $sql = 'SELECT * FROM ' . _DB_PREFIX_ . 'interes WHERE payment_method IN (SELECT id_decidir FROM ' . _DB_PREFIX_ . 'medios WHERE id_medio ='.$pMethod.' AND active=1) AND active=1';
 
         $result = Db::getInstance()->ExecuteS($sql);
         return $result;     

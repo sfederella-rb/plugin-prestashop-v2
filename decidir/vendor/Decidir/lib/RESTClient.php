@@ -8,8 +8,8 @@ class RESTClient{
 	private $key = NULL;
 	private $statusCodeResponse = array(200, 201, 204);
 
-	const DECIDIR_ENDPOINT_TEST = "https://developers.decidir.com/api/v1/";
-	const DECIDIR_ENDPOINT_PROD = "https://api.decidir.com/api/v1/";
+	const DECIDIR_ENDPOINT_TEST = "https://developers.decidir.com/api/v2/";
+	const DECIDIR_ENDPOINT_PROD = "https://api.decidir.com/api/v2/";
 
 	public function __construct($keys_data_array, $mode = "test"){
 		$this->keys_data = $keys_data_array;
@@ -55,7 +55,10 @@ class RESTClient{
 	}
 
 	public function put(){
-		//do something
+		$this->setUrl($action);
+		$this->setKey($action);
+
+		return $this->RESTService("PUT", $data);
 	}
 
 	public function delete($action, $data){
@@ -85,6 +88,7 @@ class RESTClient{
 					break;
 
 			case "PUT":
+					curl_setopt($curl, CURLOPT_POSTFIELDS, $data);	
 					curl_setopt($curl, CURLOPT_PUT, 1);
             		break;
 

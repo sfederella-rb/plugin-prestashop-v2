@@ -4,7 +4,6 @@ if (!defined('_PS_VERSION_'))
 	exit;
 
 require_once (dirname(__FILE__) . '../../../config/config.inc.php');
-//require_once (dirname(__FILE__) . '/vendor/vendor/autoload.php');
 require_once (dirname(__FILE__) . '/classes/Transaccion.php');
 require_once (dirname(__FILE__) . '/classes/Productos.php');
 require_once (dirname(__FILE__) . '/classes/AdminFieldForm.php');
@@ -20,13 +19,19 @@ require_once (dirname(__FILE__) . '/controllers/back/AdminInteresController.php'
 require_once (dirname(__FILE__) . '/classes/Interes.php');
 require_once (dirname(__FILE__) . '/controllers/front/paymentselect.php');
 
-
 class Decidir extends PaymentModule
 {
-	//protected $config_form = false;
+    //protected $config_form = false;
+    const DECIDIR_ENDPOINT_TEST = "test";
+    const DECIDIR_ENDPOINT_PROD = "prod";
+
 	/** segmento de la tienda */
 	private $segmento = array(
-			                array('key' => 'retail', 'name' => 'Retail')
+			                array('key' => 'retail', 'name' => 'Retail'),
+                            array('key' => 'ticketing', 'name' => 'Ticketing'),
+                            array('key' => 'digitalgoods', 'name' => 'Digital Goods'),
+                            array('key' => 'service', 'name' => 'Service'),
+                            array('key' => 'travel', 'name' => 'Travel')
 				        );
 
 	/** canal de ingreso del pedido */
@@ -46,21 +51,15 @@ class Decidir extends PaymentModule
 	//estados default que se agregan durante la instalacion
 	
 	protected $default_states = array('proceso'=>3,'aprobada'=>2,'denegada'=>6,'pendiente'=>1);
-	
-	//protected $cs_orgid = "k8vif92e";
-    //protected $cs_orgid_test = "1snn5n9w";
 
 	public $log;
-
-	const DECIDIR_ENDPOINT_TEST = "test";
-    const DECIDIR_ENDPOINT_PROD = "prod";
 
 	public function __construct()//constructor
 	{	
 		//module info
 		$this->name = 'decidir';
 		$this->tab = 'payments_gateways';
-		$this->version = '1.0.0';
+		$this->version = '1.0.5';
 		$this->author = 'Prisma';
 		$this->need_instance = 0;
 		$this->ps_versions_compliancy = array('min' => '1.6.0', 'max' => _PS_VERSION_); 
@@ -92,11 +91,12 @@ class Decidir extends PaymentModule
 		return parent::install() && $this->registerHook('displayPayment') && 
 							$this->registerHook('displayBackOfficeHeader') && 
 							$this->registerHook('displayPaymentReturnPage') && 
-							$this->registerHook('displayAdminProductsExtra') &&
+							$this->unregisterHook('displayAdminProductsExtra') &&
 							$this->registerHook('displayShoppingCart') && 
 							$this->registerHook('displayHeader') &&
 							$this->registerHook('actionOrderSlipAdd') && 
-							$this->registerHook('displayAdminOrder');
+							$this->registerHook('displayAdminOrder') &&
+                            $this->registerHook('paymentOptions');//prestashop 1.7
 	}
 
 	public function uninstall()
@@ -210,7 +210,6 @@ class Decidir extends PaymentModule
 			'section_adminpage'	  => $index_section, 
 			'config_general' 	  => $this->renderConfigForms(),
 			'config_cybersource'  => $this->renderCyberSourcePage(),
-			//'config_mediospago'   => $this->renderMediosPago(),
 			'cms_mediospago'      => $this->renderCMSMediosPagos(),
 			'cms_entidades'       => $this->renderCMSEntidades(),
 			'cms_planespago'      => $this->renderCMSPlanes(),
@@ -730,25 +729,26 @@ class Decidir extends PaymentModule
 	public function getSegmentoTienda($cs = false)
 	{
 		$prefijo= $this->getPrefijo('PREFIJO_CONFIG');
-		$segmento = Configuration::get($prefijo.'_SEGMENTO');
-		if($cs) {
+		$segmento = Configuration::get($prefijo.'_CONTROLFRAUDE_VERTICAL');
+
+        if($cs) {
 			switch ($segmento)
 			{
-				case 'digital goods':
-					return DecControlFraudeFactory::DIGITAL_GOODS;
-				break;
-				case 'ticketing':
-					return DecControlFraudeFactory::TICKETING;
-				break;
-				case 'travel':
-					return DecControlFraudeFactory::TICKETING;
-				break;
-				case 'retail':
-					return DecControlFraudeFactory::RETAIL;
-				break;
-				case 'services':
-					return DecControlFraudeFactory::SERVICE;
-				break;
+                case 'retail':
+                    return DecControlFraudeFactory::RETAIL;
+                    break;
+		case 'digitalgoods':
+			return DecControlFraudeFactory::DIGITAL_GOODS;
+		    break;
+		case 'ticketing':
+			return DecControlFraudeFactory::TICKETING;
+		    break;
+		case 'service':
+			return DecControlFraudeFactory::SERVICE;
+		    break;
+                case 'travel':
+                    return DecControlFraudeFactory::TRAVEL;
+                    break;
 				default:
 					return DecControlFraudeFactory::RETAIL;
 				break;
@@ -1000,10 +1000,40 @@ class Decidir extends PaymentModule
 		$this->context->controller->addCSS($this->local_path.'css/back.css', 'all');
 		$this->context->controller->addJS($this->local_path.'js/back.js', 'all');
 	}
-	
-	/**
-	 * Muestra el medio de pago en la lista
-	 */
+	*/
+
+    //prestashop 1.7, show payment method in options
+	public function hookPaymentOptions($params)
+	{
+		if (!$this->active || !$this->isActivo()) {
+	            return;
+	        }
+
+        if (!$this->checkCurrency($params['cart'])) {
+            return;
+        }
+
+        $cart = $this->context->cart;
+
+        $newOption = new PrestaShop\PrestaShop\Core\Payment\PaymentOption();
+
+        $ModuleName = Configuration::get($this->getPrefijo('PREFIJO_CONFIG').'_FRONTEND_NAME');//nombre que se muestra al momento de elegir los metodos de pago
+
+        $urlForm = $this->context->link->getModuleLink('decidir', 'payment', array('paso' => '1'), true);
+
+        $newOption->setCallToActionText($ModuleName)
+                    ->setAction($urlForm)
+                    ->setInputs([])
+                    ->setAdditionalInformation($this->context->smarty->fetch('module:decidir/views/templates/hook/payment_option.tpl'));
+
+        $payment_options = [
+        	$newOption
+        ];
+
+        return $payment_options;
+	}
+
+	//prestashop 1.6, muestra el medio de pago en la lista
 	public function hookDisplayPayment()
 	{
 		//si el modulo no esta activo
@@ -1047,7 +1077,7 @@ class Decidir extends PaymentModule
 		$productOption = $this->getOptions($this->product_code);
 		
 		//recupero los campos del formulario
-		$form_fields = Decidir\AdminFieldForm::getFormFields('Prevencion del fraude', Decidir\AdminFieldForm::getProductoFormInputs($this->getSegmentoTienda(),$servicioOption, $deliveryOption, $envioOption, $productOption));
+		$form_fields = Decidir\AdminFieldForm::getFormFields('Prevencion del fraude', Decidir\AdminFieldForm::getProductoFormInputs($this->getSegmentoTienda(true),$servicioOption, $deliveryOption, $envioOption, $productOption));
 		
 		//si no hay ningun input porque no hay datos para agregar para el segmento de la tienda
 		if (count($form_fields['form']['input']) == 0)
@@ -1077,7 +1107,7 @@ class Decidir extends PaymentModule
 		
 		//obtengo el html del formulario y lo agrego al smarty	
 		$this->smarty->assign(array(
-				'segmento' => $this->getSegmentoTienda(),//para filtrar campos del formulario segun el segmento
+				'segmento' => $this->getSegmentoTienda(true),//para filtrar campos del formulario segun el segmento
 				'tab' => $this->displayName,
 				'nombreDiv' => strtolower($this->name).'-controlfraude',
 				'form' => $helperForm->generateForm(array($form_fields)),
@@ -1104,7 +1134,7 @@ class Decidir extends PaymentModule
 			if (isset($params['form']) && count($params['form'])>0) //si el hook se ejecuto desde el _postProcess
 			{		
 				$idProducto = $params['id_product'];//recupero el id del producto desde el backoffice
-				$segmento = $this->getSegmentoTienda();//recupero el segmento de la tienda
+				$segmento = $this->getSegmentoTienda(true);//recupero el segmento de la tienda
 				$this->displayName = $this->l('Prevencion del fraude');//nombre que se muestra en la tab
 					
 				$this->log->info('ActionProductUpdate - Segmento '.$segmento.' - params: '.json_encode($params));

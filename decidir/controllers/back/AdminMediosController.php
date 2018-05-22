@@ -138,12 +138,12 @@ class AdminMediosController extends AdminController
         Db::getInstance()->delete(_DB_PREFIX_.'promociones', 'payment_method='.$idMedioPago);
     }
 
-    public function getTokensUserList($userid){
+    public function getTokensUserList($userid, $pMethod){
         $element = array();
         $tokenInfo = array();
         $tokenList = array();
 
-        $sql = 'SELECT * FROM ' . _DB_PREFIX_ . 'decidir_tokens WHERE user_id="'.$userid.'"';
+        $sql = 'SELECT * FROM ' . _DB_PREFIX_ . 'decidir_tokens WHERE user_id="'.$userid.'" AND payment_method_id='.$pMethod;
         $result = Db::getInstance()->ExecuteS($sql);
 
         if(!empty($result)){
@@ -176,6 +176,7 @@ class AdminMediosController extends AdminController
 
     public function getTokenByUserId($userid, $bin, $pMethodIds){
         $sql = 'SELECT * FROM ' . _DB_PREFIX_ . 'decidir_tokens WHERE user_id="'.$userid.'" AND bin='.$bin.' AND payment_method_id='.$pMethodIds;
+
         $result = Db::getInstance()->ExecuteS($sql);
 
         return $result;

@@ -36,6 +36,6 @@
 	if(isset($_POST['userid']) && $_POST['userid'] != "")
 	{	
 		$instToken = new AdminMediosController();
-		$tokenList = $instToken->getTokensUserList($_POST['userid']);
+		$tokenList = $instToken->getTokensUserList($_POST['userid'], $_POST['pmethod']);
 		echo json_encode($tokenList);
 	}

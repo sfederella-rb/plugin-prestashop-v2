@@ -12,9 +12,6 @@ class Data extends \Decidir\Data\AbstractData {
 			"token" => array(
 				"name" => "token"
 			),
-			"user_id" => array(
-				"name" => "user_id"
-			),
 			"payment_method_id" => array(
 				"name" => "payment_method_id"
 			),
@@ -36,12 +33,18 @@ class Data extends \Decidir\Data\AbstractData {
 			"payment_type" => array(
 				"name" => "payment_type"
 			),
+			"establishment_name" => array(
+				"name" => "establishment_name"
+			),
 			"sub_payments" => array(
 				"name" => "sub_payments"
 			),
 			"fraud_detection" => array(
 				"name" => "fraud_detection"
-			)
+			),
+			"customer" => array(
+				"name" => "customer"
+			),
 		));
 
 		parent::__construct($data);

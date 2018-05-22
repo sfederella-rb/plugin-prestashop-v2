@@ -20,6 +20,11 @@ decidirSandbox.setTimeout(0);//se configura sin timeout
 function sdkResponseHandler(status, response) {
   console.log(status);
   if (status == '200' ||status == '201') {
+    console.log('OK - Respuesta: '+response );
+    console.log('TOKEN: '+response.id );
+
+    alert("Token de pago: "+response.id);
+    
     $.ajax('form_action.php',
     {
         method  : 'POST',

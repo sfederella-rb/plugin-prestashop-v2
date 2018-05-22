@@ -1,8 +1,4 @@
 <?php
-
-/**
- * @since 1.6.0
- */
 require_once dirname(__FILE__) . '/../../../../config/config.inc.php';
 
 class DecidirValidationModuleFrontController extends ModuleFrontController
@@ -15,7 +11,7 @@ class DecidirValidationModuleFrontController extends ModuleFrontController
 		$orderState = 2;
 		$cart = $this->context->cart;//recupero el carrito
 
-		//si no hay un cliente registrado, o una direccion de entrega, o direccion de contacto o el modulo no esta activo
+        //si no hay un cliente registrado, o una direccion de entrega, o direccion de contacto o el modulo no esta activo
 		if ($cart->id_customer == 0 || $cart->id_address_delivery == 0 || $cart->id_address_invoice == 0 || !$this->module->active || 
 				 !$this->module->isActivo())
 			Tools::redirect('index.php?controller=order&step=1');//redirecciona al primer paso

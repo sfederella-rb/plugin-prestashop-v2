@@ -1,6 +1,6 @@
 <script>
 	$(document).ready(function() {
-		var type = 1;
+		var refundtype = false;
 
 		//$("#loader").show();
 		$('#total_void_check').change(function () {
@@ -8,12 +8,12 @@
 				console.log("active");
 				$("#refundTotalCost").attr("disabled","disabled");
 				$("#refundTotalCost").val($("#order_amount").val());
-				type = 1;
+				refundtype = true;
 			}else{
 				console.log("no active");
 				$("#refundTotalCost").removeAttr("disabled");
 				$("#refundTotalCost").val(0);
-				type = 0;
+				refundtype = false;
 			}
 		});
 
@@ -29,7 +29,7 @@
 			        'orderOperation': "{$num_order_dec}",
 			        'orderecommerce': {$order_id},
 			        'amount': $("#refundTotalCost").val(),
-			        'type': type
+			        'refundtype': refundtype,
 			    },
 			 	success: function(data){
 			 		//alert(data);

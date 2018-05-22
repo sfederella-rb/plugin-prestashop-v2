@@ -23,54 +23,21 @@ Class DecidirPaymentformModuleFrontController extends ModuleFrontController
 			'endpoint' => $this->getEndpoint(),
 			'publicKey' => $this->getPublicKey(),
 			'email' => $this->getMail(),
+			'id_user' => $this->getUserId(),
 			'name' => $this->getCompleteName(),
 			'orderId' => "",
 			'total' => $this->getTotal(),
 			'currency' => $this->getCurrency(),
 			'pmethod' => $this->getPaymentMethod(),
-			'csDescription' => 'decidir_agregador',
-			//'orderIdDec' => $this->getOrderIdDec(),
 			'url_base' => _PS_BASE_URL_.__PS_BASE_URI__
 		));
-		
-		//if(Tools::getValue('order') == null){
-		if(false){
-	    	$this->setTemplate('paymenterror.tpl');
-	    }else{
-	    	$this->setTemplate('paymentform.tpl');	
-	    }
-	}
-	
-	public function getOrgId()
-	{
-		$orgId = Configuration::get('DECIDIR_PRODUCCION_ORGID');
-		//verifica si es ambiente de test o produccion
-        if(!$this->module->getModo()){
-            $orgId = Configuration::get('DECIDIR_TEST_ORGID');    
+
+        if (version_compare(_PS_VERSION_, '1.7.0.0') >= 0 ) {
+            $this->setTemplate('module:decidir/views/templates/front/formblock17.tpl');
+        } else {
+            $this->setTemplate('formblock16.tpl');
         }
-
-        return $orgId;
-	}
-	/*
-	public function getOrderIdDec()
-	{
-		$id_orden = Tools::getValue('order');
-		$orderIdDec = ""; 
-
-		$sql = 'SELECT id_orden_decidir FROM '._DB_PREFIX_.'decidir_transaccion WHERE id_orden = '.$id_orden;
-
-		$dataTransacciontions = Db::getInstance()->ExecuteS($sql);
-
-		if (!$dataTransacciontions){
-			return null;
-		}else{
-			foreach($dataTransacciontions as $result){
-				$orderIdDec = $result['id_orden_decidir'];
-			}
-		}
-
-		return $orderIdDec; 
-	}*/
+    }
 
 	public function getPublicKey()
 	{	
@@ -88,6 +55,10 @@ Class DecidirPaymentformModuleFrontController extends ModuleFrontController
 	public function getMail()
 	{
 		return $this->context->customer->email;
+	}
+
+	public function getUserId(){
+		return $this->context->customer->id;
 	}
 
 	public function getCompleteName()

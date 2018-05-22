@@ -1,8 +1,8 @@
 <?php
 include_once dirname(__FILE__)."/../vendor/autoload.php";
 
-$keys_data = array('public_key' => 'b192e4cb99564b84bf5db5550112adea',
-		   		   'private_key' => '566f2c897b5e4bfaa0ec2452f5d67f13');
+$keys_data = array('public_key' => 'e9cdb99fff374b5f91da4480c8dca741',
+		   		   'private_key' => '92b71cf711ca41f78362a7134f87ff65');
 
 $ambient = "test";//valores posibles "test" o "prod"
 
@@ -23,9 +23,9 @@ echo("--------------------------------------------<br><br>");
 //------------------------ejecucion de pago--------------------------
 
 $data = array(
-			  "site_transaction_id" => "070717_01",
-			  "token" => "84c7de68-e933-4533-ba9a-c5fd7cbec9a0",
-			  "user_id" => "prueba",
+			  "site_transaction_id" => "130717_06",
+			  "token" => "850c2092-ee57-45a7-ada3-d6075ff753ca",
+			  "customer" => array("id" => "usuario_prueba", "email" => "email@server.com"),
 			  "payment_method_id" => 1,
 			  "amount" => 12.00,
 			  "bin" => "450799",
@@ -33,11 +33,12 @@ $data = array(
 			  "installments" => 1,
 			  "description" => "prueba",
 			  "payment_type" => "single",
+			  "establishment_name" => "Establecimiento test",
 			  "sub_payments" => array(),
 			  "fraud_detection" => array()
 );
 
-//Datos Cybersource retail 
+//Datos Cybersource retail
 $cs_data = array(
 				"send_to_cs" => true,
 				"channel" => "Web",
@@ -84,37 +85,38 @@ $cs_data = array(
 				"csmdd17" => "17"
 			);
 
-
 //lista de productos cybersource
 $cs_products = array(
-					array(
-						"csitproductcode" => "popblacksabbat2016",
-		                "csitproductdescription" => "Popular Black Sabbath 2016",
-		                "csitproductname" => "popblacksabbat2016ss",
-		                "csitproductsku" => "asas",
-		                "csittotalamount" => 6.00,
-		                "csitquantity" => 1,
-		                "csitunitprice" => 6.00
-				    ),
-					array(
-						"csitproductcode" => "popblacksabbat2017",
-		                "csitproductdescription" => "Popular Black Sabbath 2017",
-		                "csitproductname" => "popblacksabbat2017ss",
-		                "csitproductsku" => "asas",
-		                "csittotalamount" => 6.00,
-		                "csitquantity" => 1,
-		                "csitunitprice" => 6.00
-					)
-				);
+    array(
+        "csitproductcode" => "popblacksabbat2016",
+        "csitproductdescription" => "Popular Black Sabbath 2016",
+        "csitproductname" => "popblacksabbat2016ss",
+        "csitproductsku" => "asas",
+        "csittotalamount" => 6.00,
+        "csitquantity" => 1,
+        "csitunitprice" => 6.00
+    ),
+    array(
+        "csitproductcode" => "popblacksabbat2017",
+        "csitproductdescription" => "Popular Black Sabbath 2017",
+        "csitproductname" => "popblacksabbat2017ss",
+        "csitproductsku" => "asas",
+        "csittotalamount" => 6.00,
+        "csitquantity" => 1,
+        "csitunitprice" => 6.00
+    )
+);
 
 $cybersource = new \Decidir\Cybersource\Retail($cs_data, $cs_products);
 //$cybersource = new \Decidir\Cybersource\DigitalGoods($cs_data, $cs_products);
 //$cybersource = new \Decidir\Cybersource\Ticketing($cs_data, $cs_products);
+//$cybersource = new \Decidir\Cybersource\Travel($cs_data, $cs_passenger);
+//$cybersource = new \Decidir\Cybersource\Service($cs_data, $cs_products);
 
-//echo("Cybersource Data<br>");
-//var_dump($cybersource->getData());
-//echo("<br>----------------------------------<br><br>");
-/*
+echo("Cybersource Data<br>");
+var_dump($cybersource->getData());
+echo("<br>----------------------------------<br><br>");
+
 $connector->payment()->setCybersource($cybersource->getData());
 
 try {
@@ -122,11 +124,20 @@ try {
 	echo("Respuest payment<br>");
 	print_r($response);
 
+	echo("<br><br>");
+	echo("Status: ".$response->getStatus()."<br><br>");
+
+	echo("Status detail<br>");
+	echo("Ticket:".$response->getStatus_details()->ticket."<br>");
+	echo("Card Authorization Code: ".$response->getStatus_details()->card_authorization_code."<br>");
+	echo("Address Validation Code : ".$response->getStatus_details()->address_validation_code."<br>");
+	var_dump($response->getStatus_details()->error);//echo(print_r($response->getStatus_details()->error,true));
+
 } catch(\Exception $e) {
 	echo("Error Respuest payment<br>");
 	var_dump($e->getData());
 }
-*/
+
 //--------------------------lista de pagos----------------------------
 /*
 $data = array();
@@ -235,9 +246,6 @@ echo("Errores: ".$response->getValidationErrors());
 //---------------------------------------------------------------------
 
 //----------------------Listado de tarjetas tokenizadas --------------------
-*/
-
-$data = array();
 
 $response = $connector->cardToken()->tokensList($data, "pepe");
 echo("Respuesta de listado de tarjetas tokenizadas<br>");
@@ -246,7 +254,7 @@ echo("<br>---------------<br>");
 echo("Token:");
 var_dump($response->getTokens());
 
-/*
+
 //------------------------Eliminacion de token------------------------
 
 echo("Request servicio eliminacion de token<br>");

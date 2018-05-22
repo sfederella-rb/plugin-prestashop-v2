@@ -21,16 +21,6 @@ abstract class DecControlFraude {
 		$this->datasources['extra'] = $extra;
 	}
 	
-	/*	
-	public function getDataCS(){
-		$datosCS = $this->completeCS();
-
-		$datos_cs = $datosCS;
-
-		return $datos_cs;
-	}
-	*/
-	
 	public function getCSVertical(){
 		
 		$products_css = $this->completeCSVertical();
@@ -43,7 +33,14 @@ abstract class DecControlFraude {
 		$products_css = $this->getMultipleProductsInfo();
 
 		return $products_css; 
-	}	
+	}
+
+    public function getPassengers(){
+
+        $passenger_css = $this->getMultiplePassengersInfo();
+
+        return $passenger_css;
+    }
 
 	protected abstract function completeCSVertical();
 
@@ -69,6 +66,28 @@ abstract class DecControlFraude {
 
 		return $productsData;
 	}
+
+    protected function getMultiplePassengersInfo(){
+        $passengers = $this->datasources["customer"];
+        $passengerData = array();
+
+        //foreach ($passengers as $key => $item) {
+            $passengerData = array(
+                'email' => $this->datasources["customer"]->email,
+                'first_name' => $this->datasources["customer"]->firstname,
+                'last_name' => $this->datasources["customer"]->lastname,
+                'passport_id' => "",
+                'phone' => "",
+                'passenger_status' => "",
+                'passenger_type' => ""
+
+            );
+
+            $productsData[] = $passengerData;
+        //}
+
+        return $productsData;
+    }
 	
 	protected function _getPhone($datasources, $mobile = false){
 		if($mobile) {

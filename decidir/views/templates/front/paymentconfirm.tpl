@@ -1,5 +1,5 @@
 {capture name=path}
-  <span class="navigation-pipe">{$navigationPipe}</span>Confirmacion de Pago
+	<span class="navigation-pipe">{$navigationPipe}</span>Confirmacion de Pago
 {/capture}
 
 <style>
@@ -7,7 +7,7 @@
 		padding:6px 6px 7px 7px !important;
 	}
 	p{
-		font-size: 17px;	
+		font-size: 17px;
 		margin:0 0 16px 0;
 	}
 </style>
@@ -17,7 +17,6 @@
 	<!-- Block decidir -->
 	<div id="mymodule_block_home" class="block">
 		<h2>{l s='Gracias por su compra.' mod='decidir'} </h2><br>
-		<p>{$cs_message}</p>
 		<p>El c&oacute;digo de referencia de la order es: <a href='{$url_orderdetails}'>{$order_ref}</a></p>
 	</div>
 
@@ -37,7 +36,7 @@
 	</ul>
 	<!-- /Block decidir -->
 {else}
-	
+
 	<p class="warning">{l s='Tu carrito esta vacio.' mod='decidir'}</p>
 
 {/if}

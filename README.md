@@ -1,6 +1,5 @@
 <a name="inicio"></a>
 Prestashop - m&oacute;dulo Decidir (v1.0.x)
-==========
  
 Plug-in para la integraci&oacute;n con pasarela de pago <strong>Decidir</strong>.
 - [Consideraciones Generales](#consideracionesgenerales)
@@ -19,8 +18,8 @@ Plug-in para la integraci&oacute;n con pasarela de pago <strong>Decidir</strong>
 
 <a name="consideracionesgenerales"></a>
 ## Consideraciones Generales
-El plug in de pagos de <strong>Decidir</strong>, provee a las tiendas Prestashop de un nuevo m&eacute;todo de pago, integrando la tienda al gateway de pago.
-La versi&oacute;n de este plug in esta testeada en PHP 5.3 en adelante y Prestashop 1.6.
+El plugin de pagos de <strong>Decidir 2.0</strong>, provee a las tiendas Prestashop de un nuevo m&eacute;todo de pago, integrando la tienda al gateway de pago.
+La versi&oacute;n de este plug in esta testeada en PHP 5.3 en adelante y Prestashop 1.6 en adelante.
 Es sumamente importante que se compare con las necesidades de negocio para evaluar la utilización del mismo o recurrir a una integración vía SDK.
 
 <a name="instalacion"></a>
@@ -30,10 +29,11 @@ Es sumamente importante que se compare con las necesidades de negocio para evalu
 3.	Ir a  "M&oacute;dulos" dentro del Area de Administraci&oacute;n.
 4. En la lista de m&oacute;dulos, ir a la fila llamada "Decidir" y hacer click donde dice "Instalar". De aparecer un cartel de advertencia, elegir la opci&oacute;n "Seguir con la instalaci&oacute;n". Una vez instalado ir a la pagina de configuraci&oacute;n, que se puede acceder desde la lista de m&oacute;dulos.
 
-**Para reinstalar debe desinstalar cualquier versi&oacute;n anterior antes de copiar el plugin a la carpeta modules de Prestashop. De lo contrario fallar&aacute; la instalacion de la nueva versi&oacute;n**
+**Para actualizar el plugin se debe desinstalar cualquier versi&oacute;n anterior antes de copiar el plugin a la carpeta modules de Prestashop. De lo contrario fallar&aacute; la instalacion de la nueva versi&oacute;n**
 
 Observaci&oacute;n:
-Descomentar: <em>extension=php_openssl.dll</em> del php.ini.
+Descomentar: <em>extension=php_openssl.dll</em> y <em>extension=php_curl.dll</em> del php.ini.
+
 <br />
 [<sub>Volver a inicio</sub>](#inicio)
 
@@ -42,25 +42,25 @@ Descomentar: <em>extension=php_openssl.dll</em> del php.ini.
 
 <a name="confplugin"></a>
 Para llegar al menu de configuraci&oacute;n ir a <em>M&oacute;dulos</em> y en la lista buscar el &iacute;tem llamado <strong>Decidir</strong>.
-El Plug-in esta separado por secciones, Configuración Cybersource, ABM medios de pago, entidades y planes de pago.
+El Plugin esta separado por secciones, Configuración Cybersource, ABM medios de pago, entidades y planes de pago.
 <a name="confplanes"></a>
 
 #### Configuración general
 
 Esta sección permite configurar los parámetros de activación del plugin, el nombre del plugin a mostrar en el frontend en la sección de selección de medio de pago y el ambiente. Si está activado será producción en caso contrario el ambiente de prueba.
-Además permite cargar las credenciales de número de comercio y codigo de seguridad de ambos ambientes.
-La sección estados del pedido permiten agregar los estados que ira tomando la orden durante el proceso de compra (durante la instalación se definen los estados por defecto). 
-En estados del pedido, permite seleccionar el estado de cada proceso (se instala por defecto).
+Además permite cargar las credenciales del comercio. Key publica y privada de ambos ambientes.
+La subsección estados del pedido permiten agregar los estados que ira tomando la orden durante el proceso de compra. 
+Durante la instalación se definen los estados por defecto, que pueden ser modificados por el administrador.
 
 #### Configuración Cybersource
 
-Esta sección permite activar Cybersource en Decidir y seleccionar el tipo de vertical (actualmente solo se encuentra disponible retail).
+Esta sección permite activar Cybersource en Decidir y seleccionar el tipo de vertical (actualmente se encuentra disponible Retail, Ticketing y Digital Goods).
 
 **NOTA**: Para poder habilitar Cybersource es necesario tener contratado el servicio y se debe seleccionar el vertical correcto de otra forma no funcionará en el Plugin. 
 
 #### ABMs de configuración
 
-Permite ingresar los Medios de pago, Entidades financieras, Promociones de pago y intereses de tarjetas de creditos habilitadas en el momento del pago.
+Permite ingresar los Medios de pago, Entidades financieras, Promociones de pago y intereses de tarjetas de créditos habilitadas en el momento del pago.
 
 ##### ABM medios de pago
 En el ABM de medio de pago se encuentran:
@@ -69,10 +69,10 @@ En el ABM de medio de pago se encuentran:
   - Id Decidir: El código del medio de pago en Decidir. (Ver Tabla en documentación del servicio) (Obligatorio)
   - Activar: Flag para activar/desactivar el medio de pago. (Obligatorio)
 
-##### ABM medios de entidades
+##### ABM de entidades financieras
 En el ABM de entidades se encuentra:
   - Nombre Entidad: El nombre con el que se mostrará dicha entidad. (Obligatorio)
-  - Activar: Flag para activar/desactivar la entidad (Obligatorio)
+  - Activar: Flag para activar/desactivar la entidad (Obligatorio)	
 
 ##### ABM medios de promociones
 En el ABM de promociones:
@@ -90,12 +90,12 @@ En el ABM de promociones:
    - Reintegro: Porcentaje de reintegro de la promoción (No obligatorio)
    - Activado: Flag para activar/desactivar la promoción (Obligatorio)
 
-##### ABM medios de promociones
+##### ABM medios de interes
 En el ABM de intereses:
   - Cuotas: Cuota a mostrar (Obligatorio)
-  - Medio de Pago: Seleccion de medio de pago (Obligatorio)
-  - Coeficiente: Coeficiente correcpondiente a la cuota (Obligatorio)
-  - activado: Flag para activar/desactivar al interes (Obligatorio)
+  - Medio de Pago: Selección de medio de pago (Obligatorio)
+  - Coeficiente: Coeficiente correspondiente a la cuota (Obligatorio)
+  - activado: Flag para activar/desactivar al interés (Obligatorio)
 
 <br/>
 
@@ -106,9 +106,9 @@ El plugin crear&aacute; nuevas tablas y registros en tablas existentes para logr
 ##### Tablas:
 1. <i>decidir_transacciones</i>, Guarda registros  de las ordenes generadas en Decidir.
 2. <i>decidir_tokens</i>, Guarda los tokens de tarjetas previamente utilizadas.
-4. <i>medios</i>, Guardar los medios de pagos habilitados.
-5. <i>bancos</i>, Guardar las entidades financieras.
-6. <i>promociones</i>, Guardar las promociones de tarjetas.
+4. <i>medios</i>, Guarda los medios de pagos habilitados.
+5. <i>bancos</i>, Guarda las entidades financieras.
+6. <i>promociones</i>, Guarda las promociones de tarjetas.
 7. <i>interes</i>, Guarda los intereses de las tarjeta de credito
 
 ##### Registros:
@@ -172,7 +172,7 @@ Las consideración para el caso de empresas del rubro <strong>RETAIL</strong> so
 -- M&eacute;todo de despacho: $carrier->name;
 -- Listado de los productos: $cart->getProducts();
 ```
-Nota: la funcion $cart->getProducts() devuelve un array con el listado de los productos, que se usan para conseguir la informaci&oacute;n que se debe enviar mediante la funci&oacute;n <strong>_getProductsDetails()</strong>.
+<strong>Nota:</strong> la funcion $cart->getProducts() devuelve un array con el listado de los productos, que se usan para conseguir la informaci&oacute;n que se debe enviar mediante la funci&oacute;n <strong>_getProductsDetails()</strong>.
 
 #### Muy Importante
 <strong>Provincias:</strong> uno de los datos requeridos para prevenci&oacute;n com&uacute;n a todos los verticales  es el campo provincia/state tanto del comprador como del lugar de env&iacute;o, para tal fin el plug in utiliza el valor del campo id_state, que figura en el registro Address recuperado, para recuperar el objeto State correspondiente a ese id, y as&iacute; obtener el iso_code. El formato de estos datos deben ser tal cual la tabla de referencia (tabla provincias). En Prestashop el listado se encuentra en Localizaci&oacute;n -> Provincias.
@@ -186,7 +186,7 @@ Nota: la funcion $cart->getProducts() devuelve un array con el listado de los pr
 
 <a name="formulario"></a>
 #### Formulario de pago Decidir
-El Plugin tiene para concluir la compra un formulario integrado de pago. Este permite pagar ingresando todos los datos de la tarjeta o ingresando solo el código de seguridad a partir de la segunda compra con la misma tarjeta.
+El Plugin para realizar el pago posee un formulario integrado de pago. Este permite pagar de dos forma. Ingresando todos los datos de la tarjeta o ingresando solo el código de seguridad a partir de la segunda compra con la misma tarjeta.
 
 [<sub>Volver a inicio</sub>](#inicio)
 
@@ -235,7 +235,7 @@ Nota: En la pagina de resumen del Pedido mostrara el Id de operación Decidir de
 [<sub>Volver a inicio</sub>](#inicio)
 
 <a name="availableversions"></a>
-## Versiones Disponibles##
+## Versiones Disponibles
 <table>
   <thead>
     <tr>
@@ -248,11 +248,10 @@ Nota: En la pagina de resumen del Pedido mostrara el Id de operación Decidir de
     <tr>
       <td><a href="">v1.0.x</a></td>
       <td>Stable (Current version)</td>
-      <td>PrestaShop v1.6.x<br />
+      <td>PrestaShop v1.6.x y 1.7.x<br />
       </td>
     </tr>
   </tbody>
 </table>
 
 [<sub>Volver a inicio</sub>](#inicio)
-

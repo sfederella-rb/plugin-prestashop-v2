@@ -1,5 +1,4 @@
 <?php
-
 use DecidirTransaccion as Transaccion;
 use DecidirProductoControlFraude as ProductoControlFraude;
 
@@ -23,12 +22,10 @@ class DecidirPaymentModuleFrontController extends ModuleFrontController
         $this->display_column_left = false;//para que no se muestre la columna de la izquierda
         $this->db = Db::getInstance();
         parent::initContent();//llama al init() de FrontController, que es la clase padre
-
-        //variables a usar
         $cart = $this->context->cart;
-
         
-        if($cart->id == null && Tools::getValue('order') != null) {
+        if($cart->id == null && Tools::getValue('order') != null)
+        {
             $order = new Order((int)Tools::getValue('order'));
             $cart = new Cart((int)$order->id_cart);
         }
@@ -40,7 +37,7 @@ class DecidirPaymentModuleFrontController extends ModuleFrontController
         if($cart != null){
             $this->tranEstado = $this->_tranEstado($cart->id);
         }
-    
+
         try 
         {
             if (!$this->module->checkCurrency($cart))
@@ -51,28 +48,44 @@ class DecidirPaymentModuleFrontController extends ModuleFrontController
                 throw new Exception('Carrito vacio');
 
 			//Prefijo que se usa para la peticion al servicio
-			$prefijo = $this->module->getPrefijoModo();	
+			$prefijo = $this->module->getPrefijoModo();
 
 			$connector = $this->prepare_connector($prefijo);
 
             //servicio helthcheck
-            $healthResponse = $this->healthCheckService($connector);
+            $healthResp = $this->healthCheckService($connector);
 
             switch ($paso)
             {
                 case 1:
-                    //seleccion de tarjetas, banco, promociones
-                    $this->module->log->info('Carga formulario de pago');
+                    //prepare-form
+                    if($healthResp){
+                        $params['paso'] = 1;
+                        $params['order'] = (int)$cart->id;
+                        $params['total'] = $total;
 
-                    $params['paso'] = 1;
-                    $params['order'] = (int)$cart->id;
-                    $params['total'] = $total;
+                        $keyPublic = Configuration::get($prefijo.'_ID_KEY_PUBLIC');
+                        $keyPrivate = Configuration::get($prefijo.'_ID_KEY_PRIVATE');
 
-                    Tools::redirect($this->context->link->getModuleLink('decidir', 'paymentform', $params, true));
+                        if(!empty($keyPublic) && !empty($keyPrivate)){
+                            $this->module->log->info('Carga el formulario de pago');
+
+                            Tools::redirect($this->context->link->getModuleLink('decidir', 'paymentform', $params));
+
+                        }else{
+                            $this->module->log->info('Ocurrio un error: El public key o private key no están configurados correctamente.');
+                            $template='paymenterror';
+                        }
+
+                    }else{
+                        //throw new Exception('El servicio de pago no responde.');
+                        $this->module->log->info('El servicio de pago no responde');
+                        $template='paymenterror';
+                    }
 
                     break;
                 case 2:
-                    //formulario de pago, ejecucion de pago
+                    //ejecución de pago
                     $this->module->log->info('confirmacion de pago');
 
                     $data = array();
@@ -81,18 +94,26 @@ class DecidirPaymentModuleFrontController extends ModuleFrontController
                     $data['installment'] = Tools::getValue('installment');
                     $data['intallmenttype'] = Tools::getValue('intallmenttype');
                     $data['token'] = Tools::getValue('token');
+                    $data['bin'] = Tools::getValue('bin');
 
-                    $this->paymentStep($cart, $prefijo, $cliente, $connector, $data);
+                    try{
+                        $this->module->log->info('confirmacion de pago');
+                        $this->_paymentStep($cart, $prefijo, $cliente, $connector, $data);
 
-                    $template='paymenterror';
+                    }catch(Exception $e){
+                        $this->module->log->error('EXCEPCION',$e);
+                        $template='paymenterror';
+                    }
 
                     break;
                 case 3:
                     //devolucion-anulacion
+                    $this->module->log->info('devolucion');
+
                     $data['order'] = Tools::getValue('order');
                     $data['orderOperation'] = Tools::getValue('orderOperation');
                     $data['amount'] = Tools::getValue('amount');
-                    $data['type'] = Tools::getValue('type');
+                    $data['type'] = Tools::getValue('refundtype');
 
                     $this->_refundExecute($data, $prefijo, $connector);
                     die;
@@ -101,6 +122,7 @@ class DecidirPaymentModuleFrontController extends ModuleFrontController
                 default:
                     //redirect to step 1
                     Tools::redirect($this->context->link->getModuleLink('decidir', 'payment', array ('paso' => '1'), true));
+                    $template='paymenterror';
                     break;
             }
 
@@ -116,64 +138,60 @@ class DecidirPaymentModuleFrontController extends ModuleFrontController
             'nbProducts' => $cart->nbProducts(),//productos
             'url_base' => _PS_BASE_URL_.__PS_BASE_URI__
         ));
-
-        //----------------------
-        // 
-        //  aca va codigo par conpatibilidad 1.7
-        //
-        //----------------------
         
         $this->setTemplate($template.'.tpl');//plantilla que se va a usar.
     }
     
     protected function ExecutePayment($optionsData, $req_params_data, $connector, $cliente, $cart)
-    {   
-        $this->module->log->info('servicio activo');
-
+    {
         try {
             $response = $connector->payment()->ExecutePayment($optionsData);
-            $this->module->log->info('response de confirmacion de pago - '.json_encode($response));
 
-            $this->_saveToken($connector, $response, $cliente, $req_params_data);
+            //save card token in prestashop
+            $this->_saveToken($connector, $response, $cliente, $req_params_data, $optionsData);
+
+            $now = new DateTime();
+            $now->format('Y-m-d H:i:s');
+
+            $responsetoJson = array();
+            $responsetoJson['id'] = $response->getId();
+            $responsetoJson['site_transaction_id'] = $response->getSiteTransactionId();
+            $responsetoJson['token'] = $response->getToken();
+            $responsetoJson['amount'] = $response->getAmount();
+            $responsetoJson['payment_type'] = $response->getPaymentType();
+            $responsetoJson['status'] = $response->getStatus();
+            $responsetoJson['bin'] = $response->getBin();
+
+            $this->_tranUpdate($cart->id, array("user_id" => $cliente->id, "decidir_order_id" => $response->getSiteTransactionId(), "payment_response" => json_encode($responsetoJson), "marca" => $optionsData['payment_method_id'], "banco" => $req_params_data['entity'], "cuotas" => $optionsData['installments'], "date" => $now->format('Y-m-d H:i:s')));
+
+            $this->module->log->info('Response confirmacion de pago: '.json_encode($responsetoJson));
+
+            return $response;
 
         }catch(\Exception $e) {
-            $this->module->log->info('Error en el pago - '.json_encode($e->getData()));
-
-            Tools::redirect($this->context->link->getModuleLink('decidir','errorpage',array(),true)); 
+            $this->module->log->info('Error en el pago: '.json_encode($e->getData()));
+            Tools::redirect($this->context->link->getModuleLink('decidir','errorpage',array(),true));
         }
-
-        $now = new DateTime();
-        $now->format('Y-m-d H:i:s');
-
-        $responsetoJson = array();
-        $responsetoJson['id'] = $response->getId();
-        $responsetoJson['site_transaction_id'] = $response->getSiteTransactionId();
-        $responsetoJson['token'] = $response->getToken();
-        $responsetoJson['user_id'] =  $response->getUserId();
-        $responsetoJson['amount'] = $response->getAmount();
-        $responsetoJson['payment_type'] = $response->getPaymentType();
-        $responsetoJson['status'] = $response->getStatus();
-        $responsetoJson['bin'] = $response->getBin();
-
-        $this->_tranUpdate($cart->id, array("user_id" => $cliente->id, "decidir_order_id" => $response->getSiteTransactionId(), "payment_response" => json_encode($responsetoJson), "marca" => $optionsData['payment_method_id'], "banco" => $req_params_data['entity'], "cuotas" => $optionsData['installments'], "date" => $now->format('Y-m-d H:i:s')));
-
-        return $response; 
     }
 
-    public function validatePayment($response){
-        $this->module->log->info('Redireccionando al controller de validacion del pago');
-
+    public function validatePayment($response)
+    {
         if($response->getStatus() == $this->codigoAprobacion){
             $param = array();
             $param['amount'] = $response->getAmount();
             $param['status'] = $response->getStatus();
 
+            $this->module->log->info('Redireccionando al controller de validacion del pago');
             Tools::redirect($this->context->link->getModuleLink(strtolower($this->module->name), 'validation', $param, false));//redirijo al 
 
         }else{
-            throw new Exception($e->getData()); 
-            $this->module->log->info('Error en el pago:'.json_encode($e->getData()));
+            $responsetoJson = array();
+            $responsetoJson['id'] = $response->getId();
+            $responsetoJson['site_transaction_id'] = $response->getSiteTransactionId();
+            $responsetoJson['status'] = $response->getStatus();
+            $responsetoJson['statusdetails'] = $response->getStatusDetails();
 
+            $this->module->log->info('Error en el pago:'.json_encode($responsetoJson));
             Tools::redirect($this->context->link->getModuleLink('decidir','errorpage',array(),true));
         }
     }
@@ -188,22 +206,17 @@ class DecidirPaymentModuleFrontController extends ModuleFrontController
 		return $connector;
 	}
 	
-	protected function prepare_order($cart, $client)
+	protected function prepareOrder($cart, $client)
 	{  
         $data = array("user_id" => $client->id, "order_id" => $cart->id);
 
 		if($this->tranEstado == 0){ 
 			$this->_tranCrear($cart->id, $data);
 		}
-
-        /*if($this->_tranEstado($cart->id) == 2){
-            throw new Exception("pago ya realizado");
-        }*/    
 	}
 	
-	public function get_paydata($cart, $prefijo, $cliente, $params_data)
-	{   
-        
+	public function getPaydata($cart, $prefijo, $cliente, $params_data)
+	{
         $payment = new AdminMediosController();
         $pMethod = $payment->getById($params_data['pmethod']);
 
@@ -212,44 +225,77 @@ class DecidirPaymentModuleFrontController extends ModuleFrontController
         $idInstallment = explode("_",$params_data['installment']);
 
         $params = array( "site_transaction_id" => "dec_".time().$cart->id.rand(1,900),
-                          "token" => $params_data['token'],
-                          "user_id" => $this->context->customer->email,
-                          "payment_method_id" => intval($pMethod[0]['id_decidir']),
-                          "amount" => (float)$cart->getOrderTotal(true),
-                          "bin" => "450799",
-                          "currency" => $currency[0]['iso_code'],
-                          "installments" => intval($idInstallment[1]),
-                          "description" => (string)$cart->id,
-                          "payment_type" => "single",
-                          "sub_payments" => array(),
-                          "fraud_detection" => array()
+                         "token" => $params_data['token'],
+                         "customer" => array("id" => strval($this->context->customer->id),"email" => strval($this->context->customer->email)),
+                         "payment_method_id" => intval($pMethod[0]['id_decidir']),
+                         "amount" => (float)$cart->getOrderTotal(true),
+                         "bin" => $params_data['bin'],
+                         "currency" => $currency[0]['iso_code'],
+                         "installments" => intval($idInstallment[1]),
+                         "description" => (string)$cart->id,
+                         "establishment_name" => Configuration::get('PS_SHOP_NAME'),
+                         "payment_type" => "single",
+                         "sub_payments" => array(),
+                         "fraud_detection" => array()
                         );
 
         return $params;
 	}
     
-    public function paymentStep($cart, $prefijo, $cliente, $connector, $req_params_data)
-    {   
-        $this->module->log->info('realiza el pago');
-        $this->prepare_order($cart, $cliente);
+    private function _paymentStep($cart, $prefijo, $cliente, $connector, $req_params_data)
+    {
+        $this->prepareOrder($cart, $cliente);
 
-        //aca adentro hago el calculo de interes
-        $optionsData = $this->get_paydata($cart, $prefijo, $cliente, $req_params_data);
-        $this->module->log->info('payment params - '.json_encode($optionsData));
+        //informacion de pago
+        $optionsData = $this->getPaydata($cart, $prefijo, $cliente, $req_params_data);
 
         //calcula costo financiero
         $optionsData = $this->_calcFinancialCost($optionsData, $cart, $req_params_data);
 
+        $this->module->log->info('payment params - '.json_encode($optionsData));
+
         //Cybersource
-        if(Configuration::get('DECIDIR_CONTROLFRAUDE_ENABLE_CS')){
+        if(Configuration::get('DECIDIR_CONTROLFRAUDE_ENABLE_CS'))
+        {
             $segmento = $this->module->getSegmentoTienda(true);
-            $customer = '';
 
-            $dataCSVertical = DecControlFraudeFactory::get_controlfraude_extractor($segmento, $customer, $cart)->getCSVertical();
-            $dataProducst = DecControlFraudeFactory::get_controlfraude_extractor($segmento, $customer, $cart)->getProducts();
+            $dataCSVertical = DecControlFraudeFactory::get_controlfraude_extractor($segmento, $cliente, $cart, $optionsData['amount'])->getCSVertical();
 
-            $cs = new \Decidir\Cybersource\Retail($dataCSVertical, $dataProducst);
-            
+            if($segmento == DecControlFraudeFactory::TRAVEL){
+                $dataPassengers = DecControlFraudeFactory::get_controlfraude_extractor($segmento, $cliente, $cart, $optionsData['amount'])->getPassengers();
+            }else{
+                $dataProducst = DecControlFraudeFactory::get_controlfraude_extractor($segmento, $cliente, $cart, $optionsData['amount'])->getProducts();
+            }
+
+            switch ($segmento)
+            {
+                case DecControlFraudeFactory::RETAIL:
+                    $cs = new \Decidir\Cybersource\Retail($dataCSVertical, $dataProducst);
+                    
+                    break;
+                case DecControlFraudeFactory::DIGITAL_GOODS:
+                    $cs = new \Decidir\Cybersource\DigitalGoods($dataCSVertical, $dataProducst);
+
+                    break;
+                case DecControlFraudeFactory::TICKETING:
+                    $cs = new \Decidir\Cybersource\Ticketing($dataCSVertical, $dataProducst);
+
+                    break;
+                case DecControlFraudeFactory::SERVICE:
+                    $cs = new \Decidir\Cybersource\Service($dataCSVertical, $dataProducst);
+
+                    break;
+                case DecControlFraudeFactory::TRAVEL:
+                    $cs = new \Decidir\Cybersource\Travel($dataCSVertical, $dataPassengers);
+
+                    break;
+                default:
+                    $cs = new \Decidir\Cybersource\Retail($dataCSVertical, $dataProducst);
+
+                    break;
+                
+            }
+
             $this->module->log->info('params Cybersource - '.json_encode($cs->getData()));
 
             $connector->payment()->setCybersource($cs->getData());
@@ -289,7 +335,8 @@ class DecidirPaymentModuleFrontController extends ModuleFrontController
         $this->tranEstado = $this->_tranEstado($cartId);
     }
 
-    public function healthCheckService($connector){
+    public function healthCheckService($connector)
+    {
         $response = $connector->healthcheck()->getStatus();
 
         if(empty($response->getName())){
@@ -299,13 +346,13 @@ class DecidirPaymentModuleFrontController extends ModuleFrontController
         return true;
     }
 
-    public function getTokenList($connector, $user_id){
+    public function getTokenList($connector, $user_id)
+    {
         try {
             $response = $connector->cardToken()->tokensList(array(), $user_id);
 
         }catch(\Exception $e) {
             $this->module->log->info('Error al obtener el listado de tarjetas tokenizadas - '.json_encode($e->getData()));
-
             Tools::redirect($this->context->link->getModuleLink('decidir','errorpage',array(),true)); 
         }
 
@@ -326,22 +373,20 @@ class DecidirPaymentModuleFrontController extends ModuleFrontController
         $this->db->insert("decidir_tokens", $data);
     }
 
-    private function _saveToken($connector, $response, $cliente, $req_params_data){
+    private function _saveToken($connector, $response, $cliente, $req_params_data, $optionsData){
         $tokens = array();
         $instPMethod = new AdminMediosController();
-        $tokensListById = $instPMethod->getTokenByUserId($cliente->email, $response->getBin(), $response->getPaymentMethodId());
-        $tokenList = $this->getTokenList($connector, $cliente->email);
+        $tokensListById = $instPMethod->getTokenByUserId($optionsData['customer']['id'], $response->getBin(), $response->getPaymentMethodId());
+        $tokenList = $this->getTokenList($connector, $optionsData['customer']['id']);
 
         //search or insert new token
         foreach($tokenList as $index => $value){
-
             $instPMethod = new AdminMediosController();
-            $tokensListById = $instPMethod->getTokenByUserId($cliente->email, $value['bin'], $value['payment_method_id']);
+            $tokensListById = $instPMethod->getTokenByUserId($optionsData['customer']['id'], $value['bin'], $value['payment_method_id']);
             $data = array();
 
             if(empty($tokensListById)){
-
-                $data['user_id'] = $cliente->email;
+                $data['user_id'] = strval($optionsData['customer']['id']);
                 $data['name'] = $value['card_holder']['name'];
                 $data['banco_id'] = $req_params_data['pmethod'];
                 $data['marca_id'] =  $req_params_data['entity'];
@@ -354,7 +399,6 @@ class DecidirPaymentModuleFrontController extends ModuleFrontController
 
                 $this->_tokensCreate($data);
             }else{
-
                 $data['id'] = $tokensListById[0]['id'];
                 $data['token'] = $value['token'];
                 $data['bin'] = $value['bin'];
@@ -404,7 +448,7 @@ class DecidirPaymentModuleFrontController extends ModuleFrontController
         $instanceRefund = new Refunds();
         $orderResponse = json_decode($res[0]['payment_response'], TRUE);
 
-        if($data['type'] == 1)//type 1 = total refund
+        if($data['refundtype'])//type 1 = total refund
         {   
             $response = $instanceRefund->totalRefund($orderResponse['id'], $orderResponse['amount'], $data, $connector);
         }else{
@@ -413,5 +457,5 @@ class DecidirPaymentModuleFrontController extends ModuleFrontController
         
         echo $response;  
     } 
-    
+
 }

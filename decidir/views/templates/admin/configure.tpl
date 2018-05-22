@@ -1,219 +1,55 @@
-{*
-* 2007-2014 PrestaShop
-*
-* NOTICE OF LICENSE
-*
-* This source file is subject to the Academic Free License (AFL 3.0)
-* that is bundled with this package in the file LICENSE.txt.
-* It is also available through the world-wide-web at this URL:
-* http://opensource.org/licenses/afl-3.0.php
-* If you did not receive a copy of the license and are unable to
-* obtain it through the world-wide-web, please send an email
-* to license@prestashop.com so we can send you a copy immediately.
-*
-* DISCLAIMER
-*
-* Do not edit or add to this file if you wish to upgrade PrestaShop to newer
-* versions in the future. If you wish to customize PrestaShop for your
-* needs please refer to http://www.prestashop.com for more information.
-*
-*  @author    PrestaShop SA <contact@prestashop.com>
-*  @copyright 2007-2014 PrestaShop SA
-*  @license   http://opensource.org/licenses/afl-3.0.php  Academic Free License (AFL 3.0)
-*  International Registered Trademark & Property of PrestaShop SA
-*
-*}
-
+<script type="text/javascript" src="/prestashop_1.7.1.2/js/jquery/jquery-1.11.0.min.js"></script>
 <!-- Add jQuery library -->
 <script type="text/javascript">
 	$(document).ready(function(){
 		var id_section = {$section_adminpage};
 
-		if(id_section == 4){
-			$("#cms_medios_pago").addClass("active");
-			$("#general").removeClass("active");
-			$("#control_fraude").removeClass("active");
-			$("#medios_pago").removeClass("active");
-			$("#cms_entidades").removeClass("active");
-			$("#cms_planes").removeClass("active");
-			$("#cms_interes").removeClass("active");
-			$("#tab5").addClass("active");
-			$("#tab4").removeClass("active");
-			$("#tab6").removeClass("active");
-			$("#tab7").removeClass("active");
-			$("#tab3").removeClass("active");
-			$("#tab2").removeClass("active");
-			$("#tab1").removeClass("active");
+		var section = ["general", "control_fraude", "medios_pago", "cms_entidades","cms_medios_pago", "cms_planes", "cms_interes"];
+		var tabs = ["tab1", "tab2", "tab3", "tab4", "tab5", "tab6", "tab7"];
 
-		}else if(id_section == 5){
-
-			$("#cms_entidades").addClass("active");
-			$("#medios_pago").removeClass("active");
-			$("#general").removeClass("active");
-			$("#control_fraude").removeClass("active");
-			$("#cms_medios_pago").removeClass("active");
-			$("#cms_planes").removeClass("active");
-			$("#cms_interes").removeClass("active");
-			$("#tab4").addClass("active");
-			$("#tab5").removeClass("active");
-			$("#tab6").removeClass("active");
-			$("#tab7").removeClass("active");
-			$("#tab3").removeClass("active");
-			$("#tab2").removeClass("active");
-			$("#tab1").removeClass("active");
-
-		}else if(id_section == 6){
-			$("#general").removeClass("active");
-			$("#control_fraude").removeClass("active");
-			$("#medios_pago").removeClass("active");
-			$("#cms_planes").addClass("active");
-			$("#cms_entidades").removeClass("active");
-			$("#cms_medios_pago").removeClass("active");
-			$("#cms_interes").removeClass("active");
-			$("#tab6").addClass("active");
-			$("#tab7").removeClass("active");
-			$("#tab4").removeClass("active");
-			$("#tab5").removeClass("active");
-			$("#tab3").removeClass("active");
-			$("#tab2").removeClass("active");
-			$("#tab1").removeClass("active");
-
-		}else if(id_section == 7){
-			$("#general").removeClass("active");
-			$("#control_fraude").removeClass("active");
-			$("#medios_pago").removeClass("active");
-			$("#cms_entidades").removeClass("active");
-			$("#cms_medios_pago").removeClass("active");
-			$("#cms_planes").removeClass("active");
-			$("#cms_interes").addClass("active");
-			$("#tab7").addClass("active");
-			$("#tab6").removeClass("active");
-			$("#tab4").removeClass("active");
-			$("#tab5").removeClass("active");
-			$("#tab3").removeClass("active");
-			$("#tab2").removeClass("active");
-			$("#tab1").removeClass("active");
+		switch(id_section) {
+		    case 4:
+		        sectindex = "cms_medios_pago";
+		        tabindex = "tab5";
+		        break;
+		    case 5:
+		    	sectindex = "cms_entidades";
+		        tabindex = "tab4";
+		        break;
+		    case 1:
+		    	sectindex = "general";
+		        tabindex = "tab1";
+		        break;
+		    default:
+		    	sectindex = "general";
+		        tabindex = "tab1";
+		        break;
 		}
+
+		loop_section(sectindex, tabindex);
 
 		//click tab event
 		$("#general_tab").click(function(){
-			$("#general").addClass("active");
-			$("#control_fraude").removeClass("active");
-			$("#medios_pago").removeClass("active");
-			$("#cms_entidades").removeClass("active");
-			$("#cms_medios_pago").removeClass("active");
-			$("#cms_planes").removeClass("active");
-			$("#cms_interes").removeClass("active");
-			$("#tab1").addClass("active");
-			$("#tab2").removeClass("active");
-			$("#tab3").removeClass("active");
-			$("#tab4").removeClass("active");
-			$("#tab5").removeClass("active");
-			$("#tab6").removeClass("active");
-			$("#tab7").removeClass("active");
-
+			loop_section("general", "tab1");
 		});
+
 		$("#control_fraude_tab").click(function(){
-			$("#control_fraude").addClass("active");
-			$("#general").removeClass("active");
-			$("#medios_pago").removeClass("active");
-			$("#cms_entidades").removeClass("active");
-			$("#cms_medios_pago").removeClass("active");
-			$("#cms_planes").removeClass("active");
-			$("#cms_interes").removeClass("active");
-			$("#tab2").addClass("active");
-			$("#tab1").removeClass("active");
-			$("#tab3").removeClass("active");
-			$("#tab4").removeClass("active");
-			$("#tab5").removeClass("active");
-			$("#tab6").removeClass("active");
-			$("#tab7").removeClass("active");
-
+			loop_section("control_fraude", "tab2");
 		});
-		/*
-		$("#medios_pago_tab").click(function(){
-			$("#medios_pago").addClass("active");
-			$("#general").removeClass("active");
-			$("#control_fraude").removeClass("active");
-			$("#cms_entidades").removeClass("active");
-			$("#cms_medios_pago").removeClass("active");
-			$("#cms_planes").removeClass("active");
-			$("#cms_interes").removeClass("active");
-			$("#tab3").addClass("active");
-			$("#tab4").removeClass("active");
-			$("#tab5").removeClass("active");
-			$("#tab6").removeClass("active");
-			$("#tab2").removeClass("active");
-			$("#tab1").removeClass("active");
-			$("#tab7").removeClass("active");
 
-		});
-		*/
 		$("#cms_medios_pago_tab").click(function(){
-			$("#cms_medios_pago").addClass("active");
-			$("#general").removeClass("active");
-			$("#control_fraude").removeClass("active");
-			$("#medios_pago").removeClass("active");
-			$("#cms_entidades").removeClass("active");
-			$("#cms_planes").removeClass("active");
-			$("#cms_interes").removeClass("active");
-			$("#tab5").addClass("active");
-			$("#tab4").removeClass("active");
-			$("#tab6").removeClass("active");
-			$("#tab3").removeClass("active");
-			$("#tab2").removeClass("active");
-			$("#tab1").removeClass("active");
-			$("#tab7").removeClass("active");
-
+			loop_section("cms_medios_pago", "tab5");
 		});
+
 		$("#cms_entidades_tab").click(function(){
-			$("#cms_entidades").addClass("active");
-			$("#medios_pago").removeClass("active");
-			$("#general").removeClass("active");
-			$("#control_fraude").removeClass("active");
-			$("#cms_medios_pago").removeClass("active");
-			$("#cms_planes").removeClass("active");
-			$("#cms_interes").removeClass("active");
-			$("#tab4").addClass("active");
-			$("#tab5").removeClass("active");
-			$("#tab6").removeClass("active");
-			$("#tab3").removeClass("active");
-			$("#tab2").removeClass("active");
-			$("#tab1").removeClass("active");
-			$("#tab7").removeClass("active");
-
+			loop_section("cms_entidades", "tab4");
 		});
+
 		$("#cms_planes_tab").click(function(){
-			$("#cms_planes").addClass("active");
-			$("#general").removeClass("active");
-			$("#control_fraude").removeClass("active");
-			$("#medios_pago").removeClass("active");
-			$("#cms_entidades").removeClass("active");
-			$("#cms_medios_pago").removeClass("active");
-			$("#cms_interes").removeClass("active");
-			$("#tab6").addClass("active");
-			$("#tab4").removeClass("active");
-			$("#tab5").removeClass("active");
-			$("#tab3").removeClass("active");
-			$("#tab2").removeClass("active");
-			$("#tab1").removeClass("active");
-			$("#tab7").removeClass("active");
+			loop_section("cms_planes", "tab6");
 		});
 		$("#cms_interes_tab").click(function(){
-			$("#cms_planes").removeClass("active");
-			$("#general").removeClass("active");
-			$("#control_fraude").removeClass("active");
-			$("#medios_pago").removeClass("active");
-			$("#cms_entidades").removeClass("active");
-			$("#cms_medios_pago").removeClass("active");
-			$("#cms_interes").addClass("active");
-			$("#tab7").addClass("active");
-			$("#tab6").removeClass("active");
-			$("#tab5").removeClass("active");
-			$("#tab4").removeClass("active");
-			$("#tab3").removeClass("active");
-			$("#tab2").removeClass("active");
-			$("#tab1").removeClass("active");
+			loop_section("cms_interes", "tab7");
 		});
 
 		//mejorar este codigo
@@ -304,7 +140,37 @@
 		if($("#fieldset_0_5_5").is(":visible")){
 		  $("#pmethod_select_interes").hide();		
 		}
+
+
+		function loop_section(contentindex, tab){
+
+			//index of section
+			var index;
+			for (index = 0; index < section.length; ++index) {
+			    console.log(section[index]+"=="+contentindex);
+
+			    if(section[index] == contentindex){
+			    	$("#"+contentindex).addClass("active");
+			    }else{
+			    	$("#"+section[index]).removeClass("active");
+			    }
+			}
+
+			var indextab;
+			for (indextab = 0; indextab < tabs.length; ++indextab) {
+			    console.log(tabs[indextab]+"=="+tab);
+
+			    if(tabs[indextab] == tab){
+			    	console.log("#"+tab);
+
+			    	$("#"+tab).addClass("active");
+			    }else{
+			    	$("#"+tabs[indextab]).removeClass("active");
+			    }
+			}
+		}
 	});	
+
 
 	//promo datepickers
     $(function(){

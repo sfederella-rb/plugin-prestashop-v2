@@ -4,10 +4,12 @@ require_once(dirname(__FILE__)."/../../classes/Productos.php");
 require_once dirname(__FILE__) . '/../../../../config/config.inc.php';
 
 class DecControlFraudeRetail extends DecControlFraude {
+    public $totalAmount = 0;
 
-	public function __construct($customer = array(), $cart = array()){
+	public function __construct($customer = array(), $cart = array(), $amount = NULL){
 		parent::__construct($customer, $cart);
 		$this->datasources["carrier"] = new Carrier($this->datasources["cart"]->id_carrier);
+		$this->totalAmount = $amount;
 	}
 
 	protected function completeCSVertical() {
@@ -36,19 +38,23 @@ class DecControlFraudeRetail extends DecControlFraude {
 		$datosCS["ship_to"]["street1"]		= $this->getField($this->datasources['address'],"address1");
 		$datosCS["ship_to"]["street2"]		= "";
 		$datosCS["currency"] 				= $this->getField($this->datasources['extra'],"moneda");
-		$datosCS["amount"]					= number_format($this->getField($this->datasources['extra'],"total"),2,".","");
-		$datosCS["is_guest"]				= false;//$this->datasources['cart']->id_guest;
+		$datosCS["amount"]					= $this->totalAmount;//number_format($this->getField($this->datasources['extra'],"total"),2,".","");
+		if($this->datasources['cart']->id_guest == 2){
+            $datosCS["is_guest"] = true;
+        }else{
+            $datosCS["is_guest"] = false;
+        }
 		$datosCS["days_in_site"]			= 0;
 		$datosCS["password"]				= $this->datasources['customer']->passwd;
-		$datosCS["num_of_transactions"] 	= 0;
-		$datosCS["phonenumber"] 			= $this->_getPhone($this->datasources,false);
+		$datosCS["num_of_transactions"] 	= 1;
+		$datosCS["cellphone_number"] 		= $this->_getPhone($this->datasources,false);
 		$datosCS["date_of_birth"]			= $this->datasources['customer']->birthday;//buscar fecha de nacimiento
 		$datosCS["street"] 					= $this->getField($this->datasources['address'],"address1");
 		$datosCS["days_to_delivery"]		= "0";
 		$datosCS["dispatch_method"]			= "";
 		$datosCS["tax_voucher_required"]	= false;
 		$datosCS["customer_loyality_number"] = ""; 
-		$datosCS["coupon_code"]				= "asdasd";
+		$datosCS["coupon_code"]				= "";
 
 		return $datosCS;
 	}

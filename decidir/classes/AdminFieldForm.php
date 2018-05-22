@@ -349,7 +349,9 @@ class AdminFieldForm {
 	 * @return un array con los campos del formulario
 	 */
 	public static function getEstadosFormInputs($estadosOption = NULL)
-	{	
+	{
+        $approvalsStatus = array();
+
 		if(is_array($estadosOption)){
 			$approvalsStatus = array_filter($estadosOption, function ($item) {
 				return $item['valid_order'] == 1;
@@ -869,7 +871,7 @@ class AdminFieldForm {
 				  )
 			);
 
-		//list of installment fior input select
+		//list of installment for input select
 		$installment = array();
         $val = 1;
         $places = 1;
@@ -976,6 +978,7 @@ class AdminFieldForm {
 						'type' => 'text',
 						'label' =>'Descuento',
 						'name' =>  'discount',
+						'disabled' => 'disabled',
 						'desc' => 'Porcentaje de descuento a aplicar en las compras con este plan (ejemplo: "10")',
 						'required' => true
 					),
@@ -983,6 +986,7 @@ class AdminFieldForm {
 						'type' => 'text',
 						'label' =>'Reintegro',
 						'name' =>  'reinbursement',
+                        			'disabled' => 'disabled',
 						'desc' => 'Porcentaje que se mostrará reintegrago en el resumen de la tarjeta, ejemplo: "10" (Sólo a modo informativo, no se incluirá en la facturación de Magento ni se enviará a Decidir)',
 						'required' => true
 					),

@@ -1,9 +1,9 @@
 <?php
 namespace Decidir;
 
-define('DECIDIR_VERSION','1.0.7');
+define('DECIDIR_VERSION','1.1.1');
 
-class connector{
+class Connector {
 	private $header_http = array();
 	private $mode = NULL;
 	private $healthCheck = NULL;
@@ -19,7 +19,7 @@ class connector{
 		$this->paymentInstance = new \Decidir\Payment($this->header_http, $this->mode);
 		$this->tokenInstance = new \Decidir\Tokenization($this->header_http, $this->mode);
 	}
-	
+
 	public function healthcheck(){
 		return $this->healthCheck;
 	}
