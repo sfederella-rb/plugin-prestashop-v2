@@ -1,9 +1,10 @@
+{assign var='current_step' value='payment'}
+{include file="$tpl_dir./order-steps.tpl"}
+
 {capture name=path}
 	<a href="{$link->getPageLink('order', true, NULL, "step=3")|escape:'html':'UTF-8'}" title="{l s='Go back to the Checkout' mod='decidir'}">{l s='Checkout' mod='decidir'}</a><span class="navigation-pipe">{$navigationPipe}</span>Todo Pago
 {/capture}
 
-{assign var='current_step' value='payment'}
-{include file="$tpl_dir./order-steps.tpl"}
 
 	<h3 class="warning">Ocurrio un error</h3>	
 {if isset($nbProducts) && $nbProducts <= 0}

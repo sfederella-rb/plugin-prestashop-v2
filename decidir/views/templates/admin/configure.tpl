@@ -3,6 +3,8 @@
 <script type="text/javascript">
 	$(document).ready(function(){
 		var id_section = {$section_adminpage};
+		//$("#discount").attr("disabled","disabled");
+		$("#discount").removeAttr("disabled","disabled");
 
 		var section = ["general", "control_fraude", "medios_pago", "cms_entidades","cms_medios_pago", "cms_planes", "cms_interes"];
 		var tabs = ["tab1", "tab2", "tab3", "tab4", "tab5", "tab6", "tab7"];

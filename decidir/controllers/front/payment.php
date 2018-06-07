@@ -47,10 +47,10 @@ class DecidirPaymentModuleFrontController extends ModuleFrontController
             if ($cart == NULL ||  $cart->getProducts() == NULL || $cart->getOrderTotal(true, Cart::BOTH) == 0)
                 throw new Exception('Carrito vacio');
 
-			//Prefijo que se usa para la peticion al servicio
-			$prefijo = $this->module->getPrefijoModo();
+            //Prefijo que se usa para la peticion al servicio
+            $prefijo = $this->module->getPrefijoModo();
 
-			$connector = $this->prepare_connector($prefijo);
+            $connector = $this->prepare_connector($prefijo);
 
             //servicio helthcheck
             $healthResp = $this->healthCheckService($connector);
@@ -73,14 +73,26 @@ class DecidirPaymentModuleFrontController extends ModuleFrontController
                             Tools::redirect($this->context->link->getModuleLink('decidir', 'paymentform', $params));
 
                         }else{
+                            
                             $this->module->log->info('Ocurrio un error: El public key o private key no están configurados correctamente.');
-                            $template='paymenterror';
+
+                            if (version_compare(_PS_VERSION_, '1.7.0.0') >= 0){
+                                Tools::redirect($this->context->link->getModuleLink('decidir', 'errorpage', array()));
+                            }else{
+                                $template='paymenterror';
+                            }
                         }
 
                     }else{
                         //throw new Exception('El servicio de pago no responde.');
                         $this->module->log->info('El servicio de pago no responde');
-                        $template='paymenterror';
+                        //$template='paymenterror';
+
+                        if (version_compare(_PS_VERSION_, '1.7.0.0') >= 0){
+                            Tools::redirect($this->context->link->getModuleLink('decidir', 'errorpage', array()));
+                        }else{
+                            $template='paymenterrors';
+                        }
                     }
 
                     break;
@@ -102,13 +114,18 @@ class DecidirPaymentModuleFrontController extends ModuleFrontController
 
                     }catch(Exception $e){
                         $this->module->log->error('EXCEPCION',$e);
-                        $template='paymenterror';
+                        if (version_compare(_PS_VERSION_, '1.7.0.0') >= 0){
+                            Tools::redirect($this->context->link->getModuleLink('decidir', 'errorpage', array()));
+                        }else{
+                            $template='paymenterror';
+                        }
                     }
 
                     break;
                 case 3:
                     //devolucion-anulacion
                     $this->module->log->info('devolucion');
+
 
                     $data['order'] = Tools::getValue('order');
                     $data['orderOperation'] = Tools::getValue('orderOperation');
@@ -120,16 +137,19 @@ class DecidirPaymentModuleFrontController extends ModuleFrontController
 
                     break;      
                 default:
-                    //redirect to step 1
-                    Tools::redirect($this->context->link->getModuleLink('decidir', 'payment', array ('paso' => '1'), true));
-                    $template='paymenterror';
+
                     break;
             }
 
         }catch (Exception $e){
-
             $this->module->log->error('EXCEPCION',$e);
-            $template='paymenterror';
+            //$template='paymenterror';
+
+            if (version_compare(_PS_VERSION_, '1.7.0.0') >= 0){
+                Tools::redirect($this->context->link->getModuleLink('todopago', 'errorpage', array('step' => 'first')));
+            }else{
+                $template='paymenterror';
+            }
         }
 
         //asigno las variables que se van a a ver en la template de payment (payment.tpl)
@@ -138,16 +158,17 @@ class DecidirPaymentModuleFrontController extends ModuleFrontController
             'nbProducts' => $cart->nbProducts(),//productos
             'url_base' => _PS_BASE_URL_.__PS_BASE_URI__
         ));
-        
-        $this->setTemplate($template.'.tpl');//plantilla que se va a usar.
+
+        $this->setTemplate($template.'.tpl');
     }
     
     protected function ExecutePayment($optionsData, $req_params_data, $connector, $cliente, $cart)
-    {
+    {   
+
+
         try {
             $response = $connector->payment()->ExecutePayment($optionsData);
 
-            //save card token in prestashop
             $this->_saveToken($connector, $response, $cliente, $req_params_data, $optionsData);
 
             $now = new DateTime();
@@ -156,7 +177,7 @@ class DecidirPaymentModuleFrontController extends ModuleFrontController
             $responsetoJson = array();
             $responsetoJson['id'] = $response->getId();
             $responsetoJson['site_transaction_id'] = $response->getSiteTransactionId();
-            $responsetoJson['token'] = $response->getToken();
+            //$responsetoJson['token'] = $response->getToken();
             $responsetoJson['amount'] = $response->getAmount();
             $responsetoJson['payment_type'] = $response->getPaymentType();
             $responsetoJson['status'] = $response->getStatus();
@@ -164,27 +185,33 @@ class DecidirPaymentModuleFrontController extends ModuleFrontController
 
             $this->_tranUpdate($cart->id, array("user_id" => $cliente->id, "decidir_order_id" => $response->getSiteTransactionId(), "payment_response" => json_encode($responsetoJson), "marca" => $optionsData['payment_method_id'], "banco" => $req_params_data['entity'], "cuotas" => $optionsData['installments'], "date" => $now->format('Y-m-d H:i:s')));
 
-            $this->module->log->info('Response confirmacion de pago: '.json_encode($responsetoJson));
+            $this->module->log->info('Response: '.json_encode($responsetoJson));
 
             return $response;
 
         }catch(\Exception $e) {
             $this->module->log->info('Error en el pago: '.json_encode($e->getData()));
-            Tools::redirect($this->context->link->getModuleLink('decidir','errorpage',array(),true));
+
+            if (version_compare(_PS_VERSION_, '1.7.0.0') >= 0){
+                Tools::redirect($this->context->link->getModuleLink('decidir', 'errorpage', array()));
+            }else{
+                Tools::redirect($this->context->link->getModuleLink('decidir', 'paymenterror', array(), true));
+            }
         }
     }
 
     public function validatePayment($response)
-    {
+    {   
         if($response->getStatus() == $this->codigoAprobacion){
+
             $param = array();
             $param['amount'] = $response->getAmount();
             $param['status'] = $response->getStatus();
 
             $this->module->log->info('Redireccionando al controller de validacion del pago');
             Tools::redirect($this->context->link->getModuleLink(strtolower($this->module->name), 'validation', $param, false));//redirijo al 
-
         }else{
+
             $responsetoJson = array();
             $responsetoJson['id'] = $response->getId();
             $responsetoJson['site_transaction_id'] = $response->getSiteTransactionId();
@@ -192,55 +219,71 @@ class DecidirPaymentModuleFrontController extends ModuleFrontController
             $responsetoJson['statusdetails'] = $response->getStatusDetails();
 
             $this->module->log->info('Error en el pago:'.json_encode($responsetoJson));
-            Tools::redirect($this->context->link->getModuleLink('decidir','errorpage',array(),true));
+
+            Tools::redirect($this->context->link->getModuleLink('decidir', 'errorpage', array()));
         }
     }
 
-	protected function prepare_connector($prefijo)
-	{	
+    protected function prepare_connector($prefijo)
+    {   
         $keys_data = array('public_key' => Configuration::get($prefijo.'_ID_KEY_PUBLIC'), 
                            'private_key' => Configuration::get($prefijo.'_ID_KEY_PRIVATE'));
 
         $connector = new \Decidir\Connector($keys_data, $this->module->getEnvironment());
 
-		return $connector;
-	}
-	
-	protected function prepareOrder($cart, $client)
-	{  
+        return $connector;
+    }
+    
+    protected function prepareOrder($cart, $client)
+    {  
         $data = array("user_id" => $client->id, "order_id" => $cart->id);
 
-		if($this->tranEstado == 0){ 
-			$this->_tranCrear($cart->id, $data);
-		}
-	}
-	
-	public function getPaydata($cart, $prefijo, $cliente, $params_data)
-	{
+        if($this->tranEstado == 0){ 
+            $this->_tranCrear($cart->id, $data);
+        }
+    }
+    
+    public function getPaydata($cart, $prefijo, $cliente, $params_data)
+    {  
         $payment = new AdminMediosController();
         $pMethod = $payment->getById($params_data['pmethod']);
 
         $currency = $this->module->getCurrency((int)$cart->id_currency);
 
-        $idInstallment = explode("_",$params_data['installment']);
+        $InstallmentInfo = explode("_",$params_data['installment']);
+
+        if (intval($params_data['intallmenttype'])) {
+            $instancePromos = new AdminPromocionesController();
+            $promoCardData = $instancePromos->getById($InstallmentInfo[0]);
+            
+
+            if(intval($promoCardData[0]["send_installment"]) <= 0){
+                $installments = intval($InstallmentInfo[1]);
+            }else{
+                $installments = intval($promoCardData[0]["send_installment"]);
+            }
+
+        }else{
+            $installments = intval($InstallmentInfo[1]);
+        }
 
         $params = array( "site_transaction_id" => "dec_".time().$cart->id.rand(1,900),
-                         "token" => $params_data['token'],
-                         "customer" => array("id" => strval($this->context->customer->id),"email" => strval($this->context->customer->email)),
-                         "payment_method_id" => intval($pMethod[0]['id_decidir']),
-                         "amount" => (float)$cart->getOrderTotal(true),
-                         "bin" => $params_data['bin'],
-                         "currency" => $currency[0]['iso_code'],
-                         "installments" => intval($idInstallment[1]),
-                         "description" => (string)$cart->id,
-                         "establishment_name" => Configuration::get('PS_SHOP_NAME'),
-                         "payment_type" => "single",
-                         "sub_payments" => array(),
-                         "fraud_detection" => array()
-                        );
+                        "token" => $params_data['token'],
+                        "customer" => array("id" => strval($this->context->customer->id),"email" => strval($this->context->customer->email)),
+                        "payment_method_id" => intval($pMethod[0]['id_decidir']),
+                        "amount" => (float)$cart->getOrderTotal(true),
+                        "bin" => $params_data['bin'],
+                        "currency" => $currency[0]['iso_code'],
+                        "installments" => $installments,
+                        "description" => (string)$cart->id,
+                        "establishment_name" => Configuration::get('PS_SHOP_NAME'),
+                        "payment_type" => "single",
+                        "sub_payments" => array(),
+                        "fraud_detection" => array()
+                    );
 
         return $params;
-	}
+    }
     
     private function _paymentStep($cart, $prefijo, $cliente, $connector, $req_params_data)
     {
@@ -426,11 +469,13 @@ class DecidirPaymentModuleFrontController extends ModuleFrontController
             $instancePromos = new AdminPromocionesController();
             $res = $instancePromos->getById($installmentArray[0]);
             $data['coeficient'] = $res[0]['coeficient'];
+            $data['discount'] = $res[0]['discount'];
 
         }else{
             $instanceInteres = new AdminInteresController();
             $res = $instanceInteres->getById($installmentArray[0]);
             $data['coeficient'] = $res[0]['coeficient'];
+            $data['discount'] = 0;
         }
 
         //recalcula el costo financiero y lo devuelve
@@ -441,14 +486,14 @@ class DecidirPaymentModuleFrontController extends ModuleFrontController
     }
     
     private function _refundExecute($data, $prefijo, $connector)
-    {
+    {   
         $sql = 'SELECT payment_response FROM '._DB_PREFIX_.'decidir_transacciones WHERE decidir_order_id="'.$data['orderOperation'].'"';
         $res = $this->db->executeS($sql);
 
         $instanceRefund = new Refunds();
         $orderResponse = json_decode($res[0]['payment_response'], TRUE);
 
-        if($data['refundtype'])//type 1 = total refund
+        if($data['type'])//type 1 = total refund
         {   
             $response = $instanceRefund->totalRefund($orderResponse['id'], $orderResponse['amount'], $data, $connector);
         }else{

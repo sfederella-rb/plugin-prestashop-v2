@@ -16,11 +16,15 @@ Class DecidirPaymentConfirmModuleFrontController extends ModuleFrontController
 	{
         global $smarty;
         parent::initContent();
+        $version = '';
 
         if (version_compare(_PS_VERSION_, '1.7.0.0') >= 0 ) {
             $this->setTemplate('module:decidir/views/templates/front/confirmblock17.tpl');
+            $version = '1.7';
+
         } else {
             $this->setTemplate('confirmblock16.tpl');
+            $version = '1.6';
         }
 
 	    //obtengo el order id
@@ -41,7 +45,8 @@ Class DecidirPaymentConfirmModuleFrontController extends ModuleFrontController
 							'order_ref' => $order->reference,
 							'url_orderdetails' => _PS_BASE_URL_.__PS_BASE_URI__.'?controller=order-detail&id_order='.$orderID[0]['id_order'],
 							'status' => 'ok',
-							'status_desc' => $state
+							'status_desc' => $state,
+							'version' => $version
 						)
 					);
 

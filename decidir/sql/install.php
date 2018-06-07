@@ -110,7 +110,7 @@
 						'INSERT INTO `'._DB_PREFIX_.'interes` (installment, payment_method, coeficient, active) VALUES(10,"6",1.2465,1)',
 						'INSERT INTO `'._DB_PREFIX_.'interes` (installment, payment_method, coeficient, active) VALUES(11,"6",1.2710,1)',
 						'INSERT INTO `'._DB_PREFIX_.'interes` (installment, payment_method, coeficient, active) VALUES(12,"6",1.2957,1)',
-						'INSERT INTO `'._DB_PREFIX_.'promociones` (name, payment_method, entity, send_installment, days, init_date, final_date, installment, coeficient, discount, reimbursement, active) VALUES ("promo Visa 1", 1, 2, "", 30, "2016-11-01", "2018-12-31", 72, 1, 10, 15, 1)',
+						'INSERT INTO `'._DB_PREFIX_.'promociones` (name, payment_method, entity, send_installment, days, init_date, final_date, installment, coeficient, discount, reimbursement, active) VALUES ("promo Visa 1", 1, 2, "", 30, "2016-11-01", "2018-12-31", 72, 1, 0, 0, 1)',
 						'INSERT INTO `'._DB_PREFIX_.'medios` (name, type, id_decidir, active) VALUES("Visa","Tarjeta",1,1)',
 						'INSERT INTO `'._DB_PREFIX_.'medios` (name, type, id_decidir, active) VALUES("MasterCard","Tarjeta",15,1)',
 						'INSERT INTO `'._DB_PREFIX_.'medios` (name, type, id_decidir, active) VALUES("American Express","Tarjeta",65,1)',

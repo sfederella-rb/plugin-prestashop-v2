@@ -9,6 +9,7 @@ class AdminPromocionesController extends AdminController
 
     PUBLIC $sectionTitle = "PLANES DE PAGO";
 
+    public $name = "";
     public function __construct()
     {
         //
@@ -73,7 +74,7 @@ class AdminPromocionesController extends AdminController
                 'align' => 'center',
             ),
             'coeficient' => array(
-                'title' => $this->l('Tasa Directa'),
+                'title' => $this->l('Coeficiente'),
                 'width' => 20,
                 'type' => 'text',
                 'align' => 'center',
@@ -172,11 +173,11 @@ class AdminPromocionesController extends AdminController
         if($ArrayPromocionfields['entity'] == '' || $ArrayPromocionfields['entity'] == null)
                 $ArrayPromocionfields['entity'] = '0';
          
-        if($ArrayPromocionfields['installment'] == '' || $ArrayPromocionfields['installment'] == null)
-                $ArrayPromocionfields['installment'] = '0';            
+        //if($ArrayPromocionfields['installment'] == '' || $ArrayPromocionfields['installment'] == '0')
+        //        $ArrayPromocionfields['installment'] = '0';            
         
-        if($ArrayPromocionfields['send_installment'] == '' )
-                $ArrayPromocionfields['send_installment'] = 0;
+        if($ArrayPromocionfields['send_installment'] == '' || $ArrayPromocionfields['installment'] == '0')
+                $ArrayPromocionfields['send_installment'] = '0';
 
         if($ArrayPromocionfields['discount'] == '' )
                 $ArrayPromocionfields['discount'] = '0';
@@ -188,8 +189,7 @@ class AdminPromocionesController extends AdminController
         $InstallmentList = array_sum($ArrayPromocionfields['id_installment']);
 
         $query = 'UPDATE `'._DB_PREFIX_.'promociones` SET name="'.$ArrayPromocionfields['plan_name'].'", payment_method='.$ArrayPromocionfields['payment_method'].', entity= '.$ArrayPromocionfields['entity'].', send_installment="'.$ArrayPromocionfields['send_installment'].'", days="'.$daysList.'", init_date="'.$ArrayPromocionfields['date_from'].'", final_date="'.$ArrayPromocionfields['date_to'].'", installment="'.$InstallmentList.'", coeficient='.$ArrayPromocionfields['coeficient'].', discount='.$ArrayPromocionfields['discount'].', reimbursement='.$ArrayPromocionfields['reinbursement'].' WHERE id_promocion = '.$ArrayPromocionfields['id_promocion'];         
-
-        if(!Db::getInstance()->ExecuteS($query)){
+        if(!Db::getInstance()->execute($query)){
             die('Error de actualizacion.');        
         }
     }
@@ -202,7 +202,7 @@ class AdminPromocionesController extends AdminController
         if($ArrayPromocionfields['send_installment'] == '' )
                 $ArrayPromocionfields['send_installment'] = 0;
 
-        if($ArrayPromocionfields['discount'] == '' )
+        if($ArrayPromocionfields['discount'] == '' || $ArrayPromocionfields['discount'] == '0')
                 $ArrayPromocionfields['discount'] = '0';
 
         if($ArrayPromocionfields['reinbursement'] == '' )
@@ -210,7 +210,7 @@ class AdminPromocionesController extends AdminController
 
         $query = 'INSERT INTO `'._DB_PREFIX_.'promociones` (name, payment_method, entity, send_installment, days, init_date, final_date, installment, coeficient, discount, reimbursement, active) VALUES("'.$ArrayPromocionfields['plan_name'].'", '.$ArrayPromocionfields['payment_method'].', '.$ArrayPromocionfields['entity'].' , "'.$ArrayPromocionfields['send_installment'].'", "'.$daysList.'", "'.$ArrayPromocionfields['date_from'].'", "'.$ArrayPromocionfields['date_to'].'", "'.$InstallmentList.'", '.$ArrayPromocionfields['coeficient'].', '.$ArrayPromocionfields['discount'].', '.$ArrayPromocionfields['reinbursement'].', '.$ArrayPromocionfields['active'].')';                  
 
-        if(!Db::getInstance()->ExecuteS($query)){
+        if(!Db::getInstance()->execute($query)){
             die('Error al insertar promocion.');        
         }
     }

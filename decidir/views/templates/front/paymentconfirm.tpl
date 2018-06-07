@@ -1,6 +1,8 @@
-{capture name=path}
-	<span class="navigation-pipe">{$navigationPipe}</span>Confirmacion de Pago
-{/capture}
+{if $version == '1.6'}
+	{capture name=path}
+		<span class="navigation-pipe">{$navigationPipe}</span>Confirmacion de Pago
+	{/capture}
+{/if}
 
 <style>
 	.button-small{

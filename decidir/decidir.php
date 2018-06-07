@@ -59,7 +59,7 @@ class Decidir extends PaymentModule
 		//module info
 		$this->name = 'decidir';
 		$this->tab = 'payments_gateways';
-		$this->version = '1.0.5';
+		$this->version = '1.0.6';
 		$this->author = 'Prisma';
 		$this->need_instance = 0;
 		$this->ps_versions_compliancy = array('min' => '1.6.0', 'max' => _PS_VERSION_); 
@@ -345,6 +345,7 @@ class Decidir extends PaymentModule
 	public function renderForm($tabla)
 	{
 		$form_fields;
+		$fields_value = array();
 
 		switch ($tabla)
 		{
@@ -875,6 +876,7 @@ class Decidir extends PaymentModule
 						$element['installment'] = $indexArray;
 						$element['payment_method'] = $interestResultList[$index]['payment_method'];
 						$element['coeficient'] = $interestResultList[$index]['coeficient'];
+						$element['discount'] = $interestResultList[$index]['discount'];
 						$element['active'] = $interestResultList[$index]['active'];
 
 						array_push($finalListInstallment, $element);
@@ -892,22 +894,45 @@ class Decidir extends PaymentModule
 	}
 
 	public function calcFinancialCost($interestResultList, $totalAmount)
-	{
+	{	
+		$coeficient = 1;
+		$percentDiscount = 0;
+
 		$total= array();
 		$total['installment'] = $interestResultList['installment'];
-
-		$coef_descuento = 1;
-		if(isset($interestResultList['discount']) && $interestResultList['discount'] > 0){
-			$coef_descuento = 1 - ($interestResultList['discount'] / 100);
+		
+		if(isset($interestResultList['coeficient']) && $interestResultList['coeficient'] > 0){
+			$coeficient = ($interestResultList['coeficient']);
 		}
-		$total['discount'] = $coef_descuento;
 
-		$installmenTotalCost = round((($totalAmount * $coef_descuento * $interestResultList['coeficient']) / $interestResultList['installment']), 2, PHP_ROUND_HALF_UP);	
+		if(isset($interestResultList['discount'])) {
+			//porcentaje de descuento
+			$percentDiscount = ($interestResultList['discount'] / 100);
+		}
+		
+		$totalCostCF = ($totalAmount * $coeficient);
 
-		$total['installmenttotal'] = $installmenTotalCost;
+		//$cf = $totalCostCF - $totalAmount;	
 
-		$totalResult = number_format(($installmenTotalCost * $interestResultList['installment']), 2, ',', ' ');
-		$total['totalCost'] = $totalResult;
+		$discount = $totalCostCF * $percentDiscount;
+
+		//aplico el descuento al total
+		$totalCostCF = $totalCostCF - $discount;
+
+		$installmenCost = round(($totalCostCF / $total['installment']), 2, PHP_ROUND_HALF_UP);
+
+		$total['installmenttotal'] = $installmenCost;
+		$total['totalCost'] = number_format($totalCostCF, 2, ',', ' ');
+			
+		/*	
+		if($discount > 0){
+			$totalDiscount = (($installmenCost * $discount));
+		}else{
+			$totalDiscount = $discount;
+		}
+		*/
+
+		$total['discount'] = $discount;
 
 		return $total;
 	}
@@ -1202,10 +1227,6 @@ class Decidir extends PaymentModule
 
 	public function validateOrderDecidir($id_cart, $id_order_state, $amount_paid, $payment_method = 'Unknown', $message = null, $extra_vars = array(), $currency_special = null, $dont_touch_amount = false, $secure_key = false, $totalFee){
 
-		if (self::DEBUG_MODE) {
-			PrestaShopLogger::addLog('PaymentModule::validateOrder - Function called', 1, null, 'Cart', (int)$id_cart, true);
-		}
-
 		if (!isset($this->context)) {
 			$this->context = Context::getContext();
 		}
@@ -1215,7 +1236,7 @@ class Decidir extends PaymentModule
 		$this->context->cart->setTaxCalculationMethod();
 
 		$this->context->language = new Language((int)$this->context->cart->id_lang);
-		$this->context->shop = ($shop ? $shop : new Shop((int)$this->context->cart->id_shop));
+		$this->context->shop = new Shop((int)$this->context->cart->id_shop);
 		ShopUrl::resetMainDomainCache();
 		$id_currency = $currency_special ? (int)$currency_special : (int)$this->context->cart->id_currency;
 		$this->context->currency = new Currency((int)$id_currency, null, (int)$this->context->shop->id);

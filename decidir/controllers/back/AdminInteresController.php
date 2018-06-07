@@ -96,9 +96,12 @@ class AdminInteresController extends AdminController
 
     public function renderSelect(){   
         $CreditCardList = $this->getAllPMethods();
+        $selectFieldOptions = "";
 
-        foreach($CreditCardList as $index => $value){
+        if(!empty($CreditCardList)){
+            foreach($CreditCardList as $index => $value){
                 $selectFieldOptions .="<option value='".$value['id']."'>".$value['name']."</option>";
+            }    
         }
 
         //render select of payment methods

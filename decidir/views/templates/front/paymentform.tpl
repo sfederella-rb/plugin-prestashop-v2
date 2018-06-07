@@ -1,8 +1,5 @@
-<link rel="stylesheet" type="text/css" href="{$content_dir}modules/decidir/css/form_decidir.css">
-<script language="javascript" src="{$jsLinkForm}"></script>
-
 {capture name=path}
-    <a href="{$link->getPageLink('order', true, NULL, "step=3")|escape:'html':'UTF-8'}" title="{l s='Go back to the Checkout' mod='formulario todopago'}">{l s='Checkout' mod='formulario todopago'}</a><span class="navigation-pipe">{$navigationPipe}</span>Formulario de Pago
+    <a href="{$link->getPageLink('order', true, NULL, "step=3")|escape:'html':'UTF-8'}" title="{l s='Go back to the Checkout' mod='formulario todopago'}">{l s='Checkout' mod='formulario todopago'}</a><span class="navigation-pipe"></span>Formulario de Pago
 {/capture}
 
 <!DOCTYPE HTML>
@@ -11,8 +8,11 @@
     <script src="https://live.decidir.com/static/v1/decidir.js"></script>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
     <meta charset="utf-8" />
+    <link rel="stylesheet" type="text/css" href="{$url_base}modules/decidir/css/form_decidir.css">
+    <script language="javascript" src="{$jsLinkForm}"></script>
 </head>
 <style>
+    
     .loader{
         background-image: url({$url_base}modules/decidir/imagenes/loader.gif);
         width:30px;
@@ -155,7 +155,7 @@
 
     #cvc_help{
         width:17px;
-        margin: 0 5px 0 0;
+        margin: 0 7px 0 0;
         padding:0 0px 0 0;
     }
 
@@ -191,6 +191,7 @@
         /*left: 236px;
         top: 307px;*/
         width:296px !important;
+        background-color: white;
     }
 
     .barcode{
@@ -216,48 +217,6 @@
     .paybox {
         font-family: Arial,sans-serif;
         font-size: 14px;
-    }
-
-    @media (min-width: 700px) and (max-width: 1200px) {
-        #wrap_form {
-            width: 100%;
-        }
-        .divCardExpirationDCVC{
-            float:none;
-            width:42%;
-            margin:0 0 -5px 0;
-        }
-    }
-
-    @media (min-width: 700px) and (max-width: 1200px) {
-        #wrap_form {
-            width: 100%;
-        }
-        .divCardExpirationDCVC{
-            float:none;
-            width:42%;
-            margin:0 0 -5px 0;
-        }
-        #warning{
-            width:100%;
-        }
-    }
-
-    @media (max-width: 699px) {
-        #formbox{
-            margin:0 0 0 2px;
-        }
-        #wrap_form {
-            width: 100%;
-        }
-        .divCardExpirationDCVC{
-            float:none;
-            width:52%;
-            margin:0 0 -5px 0 !important;
-        }
-        #warning{
-            width:100%;
-        }
     }
 
 </style>
@@ -532,8 +491,6 @@
         <div id="warning" class="alert alert-warning">
             <ul>
                 <li class="bullet">Campo CVC incorrecto.</li>
-                <!--li class="bullet">Por otro lado, si un producto tiene muchas visitas pero no suelen comprarlo, te aconsejamos revisar o modificar la información de dicho producto, su descripción o la foto, de nuevo, quizá puedas encontrar algo mejor.
-                </li-->
             </ul>
         </div>
         <fieldset>
@@ -647,7 +604,6 @@
 </div>
 </body>
 </html>
-<!--div id="boxSecCodeHelpContainer" style="left: 580px; top: 251px; display: none;"><div id="boxSecCodeHelp" style="display: block;"><div id="" class="barcode"></div><div id="" class="signature">Firma y digitos de la tarjeta #</div><div id="" class="cardcode">123</div><div id="" class="explanation">En la mayoría de las tarjetas, los 3 dígitos del código de seguridad se encuentran detrás, a la derecha de la firma.</div></div><div id="boxSecCodeHelpAmex" style="display: none;"><div id="" class="cardnumber">XXXX XXXXXX XXXXX</div><div id="" class="explanation">En las tarjetas de American Express, los 4 dígitos del código de seguridad se encuentran en el frente, arriba y a la derecha del número de la tarjeta.</div><div id="" class="cardcode">1234</div></div></div-->
 <div id="boxSecCodeHelpContainer">
     <div id="boxSecCodeHelp" style="display: block;">
         <div id="" class="barcode"></div>
@@ -655,9 +611,4 @@
         <div id="" class="cardcode left">123</div>
         <div id="" class="clear explanation">En la mayoría de las tarjetas, los 3 dígitos del código de seguridad se encuentran detrás, a la derecha de la firma.</div>
     </div>
-    <!--div id="boxSecCodeHelpAmex" style="display: none;">
-        <div id="" class="cardnumber">XXXX XXXXXX XXXXX</div>
-        <div id="" class="explanation">En las tarjetas de American Express, los 4 dígitos del código de seguridad se encuentran en el frente, arriba y a la derecha del número de la tarjeta.</div>
-        <div id="" class="cardcode">1234</div>
-    </div-->
 </div>

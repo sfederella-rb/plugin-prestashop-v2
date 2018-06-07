@@ -838,8 +838,11 @@ class AdminFieldForm {
 	public static function getConfigPromocion($idPromocion = NULL, $paymentMethodList = NULL, $entityList = NULL)
 	{	
 		$firstEntity = array('id_entity' => 0,'name' => 'Seleccionar');
-		array_unshift($entityList, $firstEntity);
 
+		if(!empty($entityList)){
+			array_unshift($entityList, $firstEntity);
+		}
+		
 		$days = array(
 				  array(
 				    'id_day' => 1,      

@@ -1,2 +1,42 @@
+    
+    @media (min-width: 700px) and (max-width: 1200px) {
+        #wrap_form {
+            width: 100%;
+        }
+        .divCardExpirationDCVC{
+            float:none;
+            width:42%;
+            margin:0 0 -5px 0;
+        }
+    }
 
+    @media (min-width: 700px) and (max-width: 1200px) {
+        #wrap_form {
+            width: 100%;
+        }
+        .divCardExpirationDCVC{
+            float:none;
+            width:42%;
+            margin:0 0 -5px 0;
+        }
+        #warning{
+            width:100%;
+        }
+    }
 
+    @media (max-width: 699px) {
+        #formbox{
+            margin:0 0 0 2px;
+        }
+        #wrap_form {
+            width: 100%;
+        }
+        .divCardExpirationDCVC{
+            float:none;
+            width:52%;
+            margin:0 0 -5px 0 !important;
+        }
+        #warning{
+            width:100%;
+        }
+    }
