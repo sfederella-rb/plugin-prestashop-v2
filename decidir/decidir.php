@@ -59,7 +59,7 @@ class Decidir extends PaymentModule
 		//module info
 		$this->name = 'decidir';
 		$this->tab = 'payments_gateways';
-		$this->version = '1.0.6';
+		$this->version = '1.1.0';
 		$this->author = 'Prisma';
 		$this->need_instance = 0;
 		$this->ps_versions_compliancy = array('min' => '1.6.0', 'max' => _PS_VERSION_); 
@@ -70,6 +70,20 @@ class Decidir extends PaymentModule
 		$this->confirmUninstall = $this->l('Are you sure you want to uninstall?');
 		//instance logger
 		$this->log = $this->configureLog();
+
+
+		//probar en 1.6
+		$this->currencies = true;
+        $this->currencies_mode = 'checkbox';
+
+        $config = Configuration::getMultiple(array('CHEQUE_NAME', 'CHEQUE_ADDRESS'));
+        if (isset($config['CHEQUE_NAME'])) {
+            $this->checkName = $config['CHEQUE_NAME'];
+        }
+        if (isset($config['CHEQUE_ADDRESS'])) {
+            $this->address = $config['CHEQUE_ADDRESS'];
+        }
+
 	}
 	
 	/**
@@ -88,21 +102,34 @@ class Decidir extends PaymentModule
 				
 		include(dirname(__FILE__).'/sql/install.php');
 
-		return parent::install() && $this->registerHook('displayPayment') && 
-							$this->registerHook('displayBackOfficeHeader') && 
-							$this->registerHook('displayPaymentReturnPage') && 
-							$this->unregisterHook('displayAdminProductsExtra') &&
-							$this->registerHook('displayShoppingCart') && 
-							$this->registerHook('displayHeader') &&
-							$this->registerHook('actionOrderSlipAdd') && 
-							$this->registerHook('displayAdminOrder') &&
-                            $this->registerHook('paymentOptions');//prestashop 1.7
+        if (version_compare(_PS_VERSION_, '1.7.0.0') < 0) {
+			$hookByVersion = "";
+		}else{
+			$hookByVersion = "&& ".$this->unregisterHook('displayAdminProductsExtra');
+		}
+		
+        return parent::install() &&  
+        	$this->registerHook('displayBackOfficeHeader') &&
+        	$this->registerHook('displayPaymentReturnPage') &&
+        	$this->registerHook('displayShoppingCart') &&
+        	$this->registerHook('displayHeader') &&
+        	$this->registerHook('actionOrderSlipAdd') &&
+        	$this->registerHook('displayAdminOrder') &&
+        	$this->registerHook('displayPaymentReturn') &&
+        	$this->registerHook('paymentOptions') &&
+            $this->registerHook('paymentReturn') &&
+            $this->registerHook('displayPayment') . $hookByVersion;
 	}
 
 	public function uninstall()
 	{//desinstalacion
 		$this->deleteConfigVariables();
-		return parent::uninstall();
+		//return parent::uninstall();
+
+		return Configuration::deleteByName('CHEQUE_NAME')
+            && Configuration::deleteByName('CHEQUE_ADDRESS')
+            && parent::uninstall()
+        ;
 	}
 	
 	public function configureLog() {

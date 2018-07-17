@@ -269,7 +269,11 @@ class DecidirPaymentModuleFrontController extends ModuleFrontController
 
         $params = array( "site_transaction_id" => "dec_".time().$cart->id.rand(1,900),
                         "token" => $params_data['token'],
-                        "customer" => array("id" => strval($this->context->customer->id),"email" => strval($this->context->customer->email)),
+                        "customer" => array(
+                                        "id" => strval($this->context->customer->id),
+                                        "email" => strval($this->context->customer->email),
+                                        "ip_address" => Tools::getRemoteAddr(),
+                                    ),
                         "payment_method_id" => intval($pMethod[0]['id_decidir']),
                         "amount" => (float)$cart->getOrderTotal(true),
                         "bin" => $params_data['bin'],
