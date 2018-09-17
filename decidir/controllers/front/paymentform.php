@@ -89,15 +89,15 @@ Class DecidirPaymentformModuleFrontController extends ModuleFrontController
 
 	public function getJsForm()
 	{	
-		return "https://live.decidir.com/static/v1/decidir.js";
+		return "https://live.decidir.com/static/v2/decidir.js";
 	}
 
 	public function getEndpoint()
 	{	
-		$endpoint = "https://developers.decidir.com/api/v1";		
+		$endpoint = "https://developers.decidir.com/api/v2";		
 
 		if($this->module->getModo()){
-			$endpoint = "https://live.decidir.com/api/v1";
+			$endpoint = "https://live.decidir.com/api/v2";
 		}
 
 		return (string)$endpoint;

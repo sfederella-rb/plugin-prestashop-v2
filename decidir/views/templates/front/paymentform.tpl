@@ -104,7 +104,7 @@
     }
 
     #CardExpirationYear{
-        margin:5px 0px 0 -12px;
+        margin:8px 0px 0 -12px;
     }
 
     #security_code{
@@ -244,6 +244,7 @@
             });
 
             $("#warning").show(50);
+            $(".loader").hide();
         }
     }
 
@@ -303,31 +304,29 @@
         var urlAjax = "{$url_base}modules/decidir/ajax/front/ajaxpaymentselection.php";
         var pmethodselected = null;
         var entityselected = null;
-
         init();
-        getTokens();
 
         //pmethod change
         $("#payment_method_select").change(function(){
-            clearEntityList()
-            clearInstallment()
+            clearEntityList();
+            clearInstallment();
+            hideForm();
+
             pmethodselected = $(this).val();
 
-            getTokens(pmethodselected);
             response = ajaxService("entities_select", urlAjax, "entities", true, null, null);
 
-            //response
             if(response){
                 showEntity();
-                showInstallment()
+                showInstallment();
                 $(".loader.lentities").hide();
             }
         });
 
         //entity change
         $("#entities_select").change(function(){
-            clearInstallment()
-
+            clearInstallment();
+            hideForm();
             entityselected = $(this).val();
 
             response = ajaxService("installment_select", urlAjax, "installment", false, pmethodselected, entityselected);
@@ -342,6 +341,9 @@
         $("#installment_select").change(function(){
             if($(this).val()){
                 $("#confirm_button_token").removeAttr("disabled");
+                hideForm();
+                pmethod = $("#payment_method_select").val();
+                getTokens(pmethod);
             }
         });
 
@@ -369,7 +371,8 @@
         }
 
         function clearInstallment(){
-            //$("#installment_select").empty();
+            $("#installment_select").html("").append("<option value=''>Seleccion&eacute; una opci&oacute;n </option>");
+;
             $("#confirm_button_token").attr("disabled", "disabled");
         }
 
@@ -379,6 +382,18 @@
 
         function showInstallment(){
             $("#installmentbox").show();
+        }
+
+        function showForm(){
+            $("#installmentbox").show();
+            $("#form_token").show();
+            $("#form_normal").show();
+        }
+
+        function hideForm(){
+            $("#installmentbox").show();
+            $("#form_token").hide();
+            $("#form_normal").hide();
         }
 
         //general ajax function
@@ -398,27 +413,27 @@
                     total: {$total}
                 },
                 success: function(dataResponse){
+                    if(dataResponse.data.length > 0){
+                        $("#"+id)[0].options.length = 0;
+                        $("#"+id).append("<option value=''>Seleccion&eacute; una opci&oacute;n </option>");
 
-                    $("#"+id)[0].options.length = 0;
-                    $("#"+id).append("<option value=''>---Elija una opci&oacute;n---</option>");
+                        $.each(dataResponse.data, function (key, data) {
+                            $("#"+id).append("<option value='"+data.id+"'>"+data.name+"</option>");
+                            interesttype = data.type;
+                        })
 
-                    $.each(dataResponse.data, function (key, data) {
-                        $("#"+id).append("<option value='"+data.id+"'>"+data.name+"</option>");
-                        interesttype = data.type;
-                    })
+                        if(others){
+                            $("#"+id).append("<option value='0'>Otros</option>");
+                        }
 
-                    if(others){
-                        $("#"+id).append("<option value='0'>Otros</option>");
+                        if(stype == "installment"){
+                            $("#instype").val(dataResponse.type);
+                        }    
+
+
+                    }else{
+                       $("#"+id).html("").append("<option value=''> Sin promociones</option>");
                     }
-
-                    if(stype == "installment"){
-                        $("#instype").val(dataResponse.type);
-                    }
-
-                },
-                error: function (e, status){
-                    console.log('Error en servicio'+ status);
-                    console.log(e);
                 }
             });
 
@@ -440,8 +455,8 @@
                     if(dataResponse.type){
                         $("#form_token").show();
                         $("#form_normal").hide();
-
                         $("#tokenselectlist").empty();
+
                         $.each(dataResponse.data, function (key, data) {
                             if(data != 0){
                                 $("#tokenselectlist").append("<option value='"+data.id+"'>"+data.desc+"</option>");
@@ -476,7 +491,6 @@
             if(pmethodvalue != "" && entityvalue != "" && installmentvalue != ""){
                 return true;
             }else{
-                //$("#warning").html("Debe seleccionar un plan");
                 $("#warning ul").append("<li>Debe seleccionar un plan</li>").show();
                 $("#warning").show(50);
                 return false;
@@ -506,7 +520,7 @@
                     <label class="">Entidad</label>
                     <div>
                         <select name="entities" id="entities_select" class="selectpicker fixed-width-lg">
-                            <option value=''>---Elija una opci&oacute;n---</option>
+                            <option value=''> Seleccion&eacute; una opci&oacute;n </option>
                         </select>
                     </div>
                 </li>
@@ -514,7 +528,7 @@
                     <label class="">Cuotas</label>
                     <div>
                         <select name="installment" id="installment_select" class="selectpicker fixed-width-lg">
-                            <option value=''>---Elija una opci&oacute;n---</option>
+                            <option value=''> Seleccion&eacute; una opci&oacute;n </option>
                         </select>
                     </div>
                     <input type="hidden" id="instype" name="installment_type" value="0"/>
@@ -587,7 +601,7 @@
                     </li>
                     <li>
                         <label for="security_code">Codigo de seguridad</label>
-                        <input type="text"  data-decidir="security_code" class="left" id="cvc" placeholder="•••" value="" maxlength="4"/>
+                        <input type="text"  data-decidir="security_code" class="left" id="cvc" placeholder="" value="" maxlength="4"/>
                         <input type="button" placeholder="" class="left" id="cvc_help" value="?" />
                     </li>
                     <li>

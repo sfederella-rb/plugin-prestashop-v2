@@ -10,6 +10,8 @@ require_once (dirname(__FILE__) . '/../../controllers/back/AdminMediosController
 require_once (dirname(__FILE__) . '/../../controllers/back/AdminInteresController.php');
 require_once (dirname(__FILE__) . '/../../controllers/back/AdminPromocionesController.php');
 require_once (dirname(__FILE__) . '../../../classes/Refunds.php');
+include_once(dirname(__FILE__) .'/../../classes/Medios.php');
+include_once(dirname(__FILE__) .'/../../classes/Promociones.php');
 
 class DecidirPaymentModuleFrontController extends ModuleFrontController
 {
@@ -165,8 +167,8 @@ class DecidirPaymentModuleFrontController extends ModuleFrontController
     protected function ExecutePayment($optionsData, $req_params_data, $connector, $cliente, $cart)
     {   
 
-
         try {
+
             $response = $connector->payment()->ExecutePayment($optionsData);
 
             $this->_saveToken($connector, $response, $cliente, $req_params_data, $optionsData);
@@ -177,7 +179,6 @@ class DecidirPaymentModuleFrontController extends ModuleFrontController
             $responsetoJson = array();
             $responsetoJson['id'] = $response->getId();
             $responsetoJson['site_transaction_id'] = $response->getSiteTransactionId();
-            //$responsetoJson['token'] = $response->getToken();
             $responsetoJson['amount'] = $response->getAmount();
             $responsetoJson['payment_type'] = $response->getPaymentType();
             $responsetoJson['status'] = $response->getStatus();
@@ -245,17 +246,17 @@ class DecidirPaymentModuleFrontController extends ModuleFrontController
     
     public function getPaydata($cart, $prefijo, $cliente, $params_data)
     {  
-        $payment = new AdminMediosController();
+        $payment = new MediosCore();
         $pMethod = $payment->getById($params_data['pmethod']);
 
-        $currency = $this->module->getCurrency((int)$cart->id_currency);
+        $currency = new CurrencyCore($cart->id_currency);
+        $currency_code = $currency->iso_code;
 
         $InstallmentInfo = explode("_",$params_data['installment']);
 
         if (intval($params_data['intallmenttype'])) {
-            $instancePromos = new AdminPromocionesController();
-            $promoCardData = $instancePromos->getById($InstallmentInfo[0]);
-            
+            $instancePromos = new PromocionesCore();
+            $promoCardData = $instancePromos->getById($InstallmentInfo[0]);            
 
             if(intval($promoCardData[0]["send_installment"]) <= 0){
                 $installments = intval($InstallmentInfo[1]);
@@ -275,9 +276,9 @@ class DecidirPaymentModuleFrontController extends ModuleFrontController
                                         "ip_address" => Tools::getRemoteAddr(),
                                     ),
                         "payment_method_id" => intval($pMethod[0]['id_decidir']),
-                        "amount" => (float)$cart->getOrderTotal(true),
+                        "amount" => $cart->getOrderTotal(true),
                         "bin" => $params_data['bin'],
-                        "currency" => $currency[0]['iso_code'],
+                        "currency" => $currency_code,
                         "installments" => $installments,
                         "description" => (string)$cart->id,
                         "establishment_name" => Configuration::get('PS_SHOP_NAME'),
@@ -347,7 +348,7 @@ class DecidirPaymentModuleFrontController extends ModuleFrontController
 
             $connector->payment()->setCybersource($cs->getData());
         }
-
+        
         $rta = $this->ExecutePayment($optionsData, $req_params_data, $connector, $cliente, $cart);
 
         $this->validatePayment($rta);
@@ -408,7 +409,7 @@ class DecidirPaymentModuleFrontController extends ModuleFrontController
 
     private function _tokensUpdate($data)
     {   
-        $sql = 'UPDATE '._DB_PREFIX_.'decidir_tokens SET token="'.$data['token'].'", bin='.$data['bin'].', last_four_digits='.$data['last_four_digits'].', expiration_month='.$data['expiration_month'].', expiration_year='.$data['expiration_year'].' WHERE id='.$data['id'];
+        $sql = 'UPDATE '._DB_PREFIX_.'decidir_tokens SET token="'.$data['token'].'", bin='.$data['bin'].', last_four_digits='.$data['last_four_digits'].', expiration_month='.$data['expiration_month'].', expiration_year="'.$data['expiration_year'].'" WHERE id="'.$data['id'].'"';
 
         if(!Db::getInstance()->execute($sql)){
             die('Error al actualizar el token de tarjeta.');        
@@ -421,15 +422,18 @@ class DecidirPaymentModuleFrontController extends ModuleFrontController
     }
 
     private function _saveToken($connector, $response, $cliente, $req_params_data, $optionsData){
+
         $tokens = array();
-        $instPMethod = new AdminMediosController();
+        $instPMethod = new MediosCore();
+
         $tokensListById = $instPMethod->getTokenByUserId($optionsData['customer']['id'], $response->getBin(), $response->getPaymentMethodId());
+
         $tokenList = $this->getTokenList($connector, $optionsData['customer']['id']);
 
         //search or insert new token
         foreach($tokenList as $index => $value){
-            $instPMethod = new AdminMediosController();
             $tokensListById = $instPMethod->getTokenByUserId($optionsData['customer']['id'], $value['bin'], $value['payment_method_id']);
+
             $data = array();
 
             if(empty($tokensListById)){
@@ -470,7 +474,11 @@ class DecidirPaymentModuleFrontController extends ModuleFrontController
         $data['active'] = 1;
 
         if($req_params_data['intallmenttype']){
-            $instancePromos = new AdminPromocionesController();
+            //$instancePromos = new AdminPromocionesController();
+            
+            $instancePromos = new PromocionesCore();
+            
+
             $res = $instancePromos->getById($installmentArray[0]);
             $data['coeficient'] = $res[0]['coeficient'];
             $data['discount'] = $res[0]['discount'];
@@ -481,10 +489,9 @@ class DecidirPaymentModuleFrontController extends ModuleFrontController
             $data['coeficient'] = $res[0]['coeficient'];
             $data['discount'] = 0;
         }
-
-        //recalcula el costo financiero y lo devuelve
         $calcRta = $this->module->calcFinancialCost($data,$optionsData['amount']);
-        $optionsData['amount'] = floatval(str_replace(',', '.', str_replace('.', '', $calcRta['totalCost'])));
+
+        $optionsData['amount'] = round($calcRta['totalCost'],2,PHP_ROUND_HALF_DOWN);
 
         return $optionsData;
     }

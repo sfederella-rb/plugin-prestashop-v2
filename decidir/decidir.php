@@ -16,8 +16,11 @@ require_once (dirname(__FILE__) . '/classes/Medios.php');
 require_once (dirname(__FILE__) . '/controllers/back/AdminPromocionesController.php');
 require_once (dirname(__FILE__) . '/classes/Promociones.php');
 require_once (dirname(__FILE__) . '/controllers/back/AdminInteresController.php');
-require_once (dirname(__FILE__) . '/classes/Interes.php');
 require_once (dirname(__FILE__) . '/controllers/front/paymentselect.php');
+require_once (dirname(__FILE__) . '/classes/Promociones.php');
+require_once (dirname(__FILE__) . '/classes/Medios.php');
+require_once (dirname(__FILE__) . '/classes/Entidades.php');
+require_once (dirname(__FILE__) . '/classes/Interes.php');
 
 class Decidir extends PaymentModule
 {
@@ -59,37 +62,27 @@ class Decidir extends PaymentModule
 		//module info
 		$this->name = 'decidir';
 		$this->tab = 'payments_gateways';
-		$this->version = '1.1.0';
+		$this->version = '1.1.2';
 		$this->author = 'Prisma';
-		$this->need_instance = 0;
+		$this->need_instance = 1;
 		$this->ps_versions_compliancy = array('min' => '1.6.0', 'max' => _PS_VERSION_); 
 		$this->bootstrap = true;
 		parent::__construct();
-		$this->displayName = $this->l('Decidir');
-		$this->description = $this->l('Decidir, medios de pago on-line.');
-		$this->confirmUninstall = $this->l('Are you sure you want to uninstall?');
-		//instance logger
-		$this->log = $this->configureLog();
-
-
-		//probar en 1.6
 		$this->currencies = true;
         $this->currencies_mode = 'checkbox';
 
-        $config = Configuration::getMultiple(array('CHEQUE_NAME', 'CHEQUE_ADDRESS'));
-        if (isset($config['CHEQUE_NAME'])) {
-            $this->checkName = $config['CHEQUE_NAME'];
-        }
-        if (isset($config['CHEQUE_ADDRESS'])) {
-            $this->address = $config['CHEQUE_ADDRESS'];
+		$this->displayName = $this->l('Decidir');
+		$this->description = $this->l('Decidir, medios de pago on-line.');
+		$this->confirmUninstall = $this->l('Estas seguro que quiere desinstalar?');
+		//instance logger
+		$this->log = $this->configureLog();
+
+        if (!count(Currency::checkPaymentCurrencies($this->id))) {
+            $this->warning = $this->trans('Ninguna moneda fue seteada.', array(), 'Modules.Checkpayment.Admin');
         }
 
 	}
 	
-	/**
-	 * Don't forget to create update methods if needed:
-	 * http://doc.prestashop.com/display/PS16/Enabling+the+Auto-Update
-	 */
 	public function install()
 	{//instalacion del modulo
 		if (Module::isInstalled('decidir'))
@@ -124,7 +117,6 @@ class Decidir extends PaymentModule
 	public function uninstall()
 	{//desinstalacion
 		$this->deleteConfigVariables();
-		//return parent::uninstall();
 
 		return Configuration::deleteByName('CHEQUE_NAME')
             && Configuration::deleteByName('CHEQUE_ADDRESS')
@@ -233,21 +225,23 @@ class Decidir extends PaymentModule
 		$this->context->smarty->assign(array(
 			'module_dir' 	 	  => $this->_path,
 			'version'    	 	  => $this->version,
-			'url_base'			  => _PS_BASE_URL_.__PS_BASE_URI__,
+			'url_base'                => _PS_BASE_URL_.__PS_BASE_URI__,
 			'section_adminpage'	  => $index_section, 
 			'config_general' 	  => $this->renderConfigForms(),
-			'config_cybersource'  => $this->renderCyberSourcePage(),
-			'cms_mediospago'      => $this->renderCMSMediosPagos(),
-			'cms_entidades'       => $this->renderCMSEntidades(),
-			'cms_planespago'      => $this->renderCMSPlanes(),
-			'cms_interes'	      => $this->renderCMSInteres(),
-			'cms_selectInteresList' => $this->renderCMSSelectInteres()
+			'config_cybersource'      => $this->renderCyberSourcePage(),
+			'cms_mediospago'          => $this->renderCMSMediosPagos(),
+			'cms_entidades'           => $this->renderCMSEntidades(),
+			'cms_planespago'          => $this->renderCMSPlanes(),
+			'cms_interes'	          => $this->renderCMSInteres(),
+			'cms_selectInteresList'   => $this->renderCMSSelectInteres(),
+                        'id_days'                 => $this->getMultiSelectValues("days","id_promocion"),
+                        'id_installments'         => $this->getMultiSelectValues("installment","id_promocion")
 		));
 		$output = $this->context->smarty->fetch($this->local_path.'views/templates/admin/configure.tpl');//recupero el template de configuracion
 		
 		return $output;
 	}
-
+        
 	public function renderCyberSourcePage()
 	{	
 		return $this->renderForm('config_cs');
@@ -323,6 +317,7 @@ class Decidir extends PaymentModule
 	public function renderCMSInteres()
 	{	
 		$list = new AdminInteresController();
+
 
 		if(isset($_GET['update_interes']) || isset($_GET['add_interes'])){
 			
@@ -437,8 +432,8 @@ class Decidir extends PaymentModule
 				//CMS promociones
 				(Tools::getValue('id_promocion') != NULL)? $title="Actualizar Promoción": $title="Cargar Promoción";
 
-				$mediosInstance = new AdminMediosController();
-				$entityInstance = new AdminEntityController();
+				$mediosInstance = new MediosCore();
+				$entityInstance = new EntidadesCore();
 
 				$form_fields = Decidir\AdminFieldForm::getFormFields($title, Decidir\AdminFieldForm::getConfigPromocion(Tools::getValue('id_promocion'), $mediosInstance->getAllPMethods(), $entityInstance->getAllEntityName()));
 
@@ -454,7 +449,8 @@ class Decidir extends PaymentModule
 					$listInteresData = $interestInstance->getById(Tools::getValue('id_interes'));
 				}
 
-				$mediosInstance = new AdminMediosController();
+				$mediosInstance = new MediosCore();
+
 				$form_fields = Decidir\AdminFieldForm::getFormFields($title, Decidir\AdminFieldForm::getConfigInteres(Tools::getValue('id_interes'), $mediosInstance->getAllPMethods(), $listInteresData));
 
 				break;
@@ -466,33 +462,30 @@ class Decidir extends PaymentModule
 		}else{
 
 			if(Tools::getValue('id_entidad') != ''){
-				//$entitydInstance = new AdminEntityController();
-				//$currentData = $entitydInstance->getById(Tools::getValue('id_entidad'));
+				$entitydInstance = new EntidadesCore();
 
-				$currentData = AdminEntityController::getById(Tools::getValue('id_entidad'));				
+				$currentData = $entitydInstance->getById(Tools::getValue('id_entidad'));				
 
 				$fields_value = Decidir\AdminFieldForm::getDataCMSEntities(Tools::getValue('id_entidad'), Decidir\AdminFieldForm::getFormInputsNames($form_fields['form']['input']), $currentData);
 
 			}elseif(Tools::getValue('id_medio') != ''){
-				//$PaymentMethodInstance = new AdminMediosController();
-				//$currentData = $PaymentMethodInstance->getById(Tools::getValue('id_medio'));
+				$paymentMethodInstance = new MediosCore();
 
-				$currentData = AdminMediosController::getById(Tools::getValue('id_medio'));
+				$currentData = $paymentMethodInstance->getById(Tools::getValue('id_medio'));
 
 				$fields_value = Decidir\AdminFieldForm::getDataPaymentMethod(Tools::getValue('id_medio'), Decidir\AdminFieldForm::getFormInputsNames($form_fields['form']['input']), $currentData);
 
 			}elseif(Tools::getValue('id_promocion') != null){
+				$promoController = new PromocionesCore();
 
-				$currentData = AdminPromocionesController::getById(Tools::getValue('id_promocion'));
+				$currentData = $promoController->getById(Tools::getValue('id_promocion'));
 
 				$fields_value = Decidir\AdminFieldForm::getDataPromo(Tools::getValue('id_promocion'), Decidir\AdminFieldForm::getFormInputsNames($form_fields['form']['input']), $currentData);
 
 			}elseif(Tools::getValue('id_interes') != null){
+				$interesInstance = new AdminInteresController();
 
-				//$interesInstance = new AdminInteresController();
-				//$currentData = $interesInstance->getById(Tools::getValue('id_interes'));
-
-				$currentData = AdminInteresController::getById(Tools::getValue('id_interes'));
+				$currentData = $interesInstance->getById(Tools::getValue('id_interes'));
 
 				$fields_value = Decidir\AdminFieldForm::getDataPromo(Tools::getValue('id_interes'), Decidir\AdminFieldForm::getFormInputsNames($form_fields['form']['input']), $currentData);
 
@@ -623,7 +616,7 @@ class Decidir extends PaymentModule
 			$promoIntance = new AdminPromocionesController();
 
 			if(isset($fields['id_promocion']) && $fields['id_promocion'] == ''){
-				$promoIntance->insertPromocion($fields);
+				$promoIntance->insertPromocion($fields);                             
 			}else if(isset($fields['id_promocion']) && $fields['id_promocion'] != ''){	
 			
 				$promoIntance->updatePromocion($fields);
@@ -869,22 +862,19 @@ class Decidir extends PaymentModule
 		$installmentList = array();
 		$instanceInsterest = new DecidirPaymentSelect();
 		$cart = $this->context->cart;
-
 		//$type true is promo, false is average insterest
 		if($type){
 			$interestResultList = $instanceInsterest->getInstallmentsPromoList($pmethod, $entity);
-			$promo = new AdminPromocionesController();
-			$allDaysArray = $promo->numberDayList();
-			$currentDay = date('w');
 
+			$promo = new PromocionesCore();
+			$promoDaysList = $promo->numberDayList();
+
+			$currentDay = date('w');
 			//filtro por dia
+		
 			foreach($interestResultList as $index => $installment){
 				$days = $interestResultList[$index]['days'];
 				$promoDaysResult = $promo->getNumberCodes($days);
-
-				if(!in_array($allDaysArray[$currentDay], $promoDaysResult)){		
-					unset($interestResultList[$index]);
-				}
 			}
 
 			//filtro por cuotas
@@ -911,12 +901,13 @@ class Decidir extends PaymentModule
 					}
 				}
 			}	
+
 			$installmentList = $this->renderInstallmentSelectOptions(true, $finalListInstallment, $totalAmount);
+			
 		}else{
 			$interestResultList = $instanceInsterest->getInstallentByPaymentId($pmethod);
 			$installmentList = $this->renderInstallmentSelectOptions(false, $interestResultList, $totalAmount);
 		}
-
 		return $installmentList;
 	}
 
@@ -939,26 +930,15 @@ class Decidir extends PaymentModule
 		
 		$totalCostCF = ($totalAmount * $coeficient);
 
-		//$cf = $totalCostCF - $totalAmount;	
-
-		$discount = $totalCostCF * $percentDiscount;
+		$discount = round($totalCostCF,2, PHP_ROUND_HALF_DOWN) * $percentDiscount;
 
 		//aplico el descuento al total
 		$totalCostCF = $totalCostCF - $discount;
 
-		$installmenCost = round(($totalCostCF / $total['installment']), 2, PHP_ROUND_HALF_UP);
+		$installmenCost = ($totalCostCF / $total['installment']);
 
 		$total['installmenttotal'] = $installmenCost;
-		$total['totalCost'] = number_format($totalCostCF, 2, ',', ' ');
-			
-		/*	
-		if($discount > 0){
-			$totalDiscount = (($installmenCost * $discount));
-		}else{
-			$totalDiscount = $discount;
-		}
-		*/
-
+		$total['totalCost'] = $totalCostCF;
 		$total['discount'] = $discount;
 
 		return $total;
@@ -988,8 +968,8 @@ class Decidir extends PaymentModule
 			$renderInfo ="<prev>";
 			$renderInfo .= $renderInfoName;
 			$renderInfo .= "Cuotas: ".$list[$index]['installment']." ";
-			$renderInfo .= "- Valor: ".$installmentCalcData['installmenttotal']." ";
-			$renderInfo .= "- Total: ".$installmentCalcData['totalCost']." ";
+			$renderInfo .= "- Valor: ".round($installmentCalcData['installmenttotal'],2)." ";
+			$renderInfo .= "- Total: ".round($installmentCalcData['totalCost'],2)." ";
 			$renderInfo .="</prev>";
 			
 			$element['name'] = $renderInfo;
@@ -1009,50 +989,6 @@ class Decidir extends PaymentModule
 
 		return $selecOption;
 	}
-	
-	public function getTokensUserList($userid){
-		$element = array();
-		$tokenInfo = array();
-		$tokenList = array();
-
-        $sql = 'SELECT * FROM ' . _DB_PREFIX_ . 'decidir_tokens WHERE user_id="'.$userid.'"';
-        $result = Db::getInstance()->ExecuteS($sql);
-
-        if(!empty($result)){
-        	foreach($result as $index => $data){
-	        	$renderInfo ="<prev>";
-				$renderInfo .= "xxxx xxxx xxxx ".$data['last_four_digits']." - ";
-				$renderInfo .= $data['name']." ";
-				$renderInfo .= "- Vto. ".$data['expiration_month']."/".$data['expiration_year'];
-				$renderInfo .="</prev>";
-
-				$element['id'] = $data['token'];
-				$element['desc'] = $renderInfo;
-				
-
-				array_push($tokenInfo, $element);
-				unset($element);
-	        }
-
-	        $tokenList['type'] = true;
-        	$tokenList['data'] = $tokenInfo;
-
-        }else{
-
-        	$tokenList['type'] = false;
-        	$tokenList['data'] = "";	
-        }
-
-        return $tokenList;     
-    }
-
-	/*
-	public function hookDisplayBackOfficeHeader()
-	{
-		$this->context->controller->addCSS($this->local_path.'css/back.css', 'all');
-		$this->context->controller->addJS($this->local_path.'js/back.js', 'all');
-	}
-	*/
 
     //prestashop 1.7, show payment method in options
 	public function hookPaymentOptions($params)
@@ -1913,4 +1849,20 @@ class Decidir extends PaymentModule
 			die($error);
 		}
 	}
+        
+        private function getMultiSelectValues($index,$idVarGet){
+            $list = new AdminPromocionesController(); 
+            $id=Tools::getValue($idVarGet);
+
+            if($id==null){
+                $id=0;
+            }
+
+            $promo=$list->getById($id);            
+            $entity=new PromocionesCore();
+            $arrayCodes=$entity->getNumberCodes($promo[0][$index]);
+            $result=implode(",",$arrayCodes);
+                       
+            return $result;
+        }
 }

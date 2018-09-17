@@ -7,18 +7,17 @@ class AdminEntityController extends AdminController
 
     public $urlAddEntity = "";
 
-    PUBLIC $sectionTitle = "ENTIDAD";
+    public $name = "";
+    
+    public $sectionTitle = "ENTIDAD";
 
     public function __construct()
     {
-        //
+        //parent::__construct();
+         if($_GET['controller'] == 'AdminModules' && $_GET['configure'] == 'decidir'){
+            parent::__construct();
+        }
     }    
-
-    /*
-    public function initToolbar()
-    {
-        parent::initToolbar();
-    }*/
 
     public function renderListEntities(){
         $list = $this->getAllEntities();
@@ -86,13 +85,6 @@ class AdminEntityController extends AdminController
         return $result;     
     }
 
-    public function getById($idEntity){
-        $sql = 'SELECT * FROM ' . _DB_PREFIX_ . 'entidades WHERE id_entidad='.$idEntity;
-        $result = Db::getInstance()->ExecuteS($sql);
-        
-        return $result;     
-    }
-
     public function updateEntity($ArrayEntityfields){
         $query = 'UPDATE '._DB_PREFIX_.'entidades SET name="'.$ArrayEntityfields['name'].'", active='.$ArrayEntityfields['active'].' WHERE id_entidad='.$ArrayEntityfields['id_entity'];
 
@@ -117,15 +109,8 @@ class AdminEntityController extends AdminController
         }
     }
 
-    public function getAllEntityName(){
-        $sql = 'SELECT id_entidad AS id, name FROM ' . _DB_PREFIX_ . 'entidades WHERE active=1';
-        $result = Db::getInstance()->ExecuteS($sql);
-
-        return $result;     
-    }
-
     public function deleteEntity($idEntity){
-        Db::getInstance()->delete(_DB_PREFIX_.'entidades', 'id_entidad='.$idEntity);
-        Db::getInstance()->delete(_DB_PREFIX_.'promociones', 'entity='.$idEntity);
+        Db::getInstance()->delete('entidades', 'id_entidad='.$idEntity);
+        Db::getInstance()->delete('promociones', 'entity='.$idEntity);
     }
 }

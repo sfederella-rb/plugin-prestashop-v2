@@ -2,6 +2,7 @@
 namespace Decidir;
 
 require_once(dirname(__FILE__).'../../../../config/config.inc.php');
+require_once(dirname(__FILE__).'/../ajax/back/ajaxadminloadpromos.php');
 
 class AdminFieldForm {
 	/**
@@ -900,16 +901,16 @@ class AdminFieldForm {
 						'name' =>  'plan_name',
 						'desc' => '',
 						'required' => false
-					),
+					),                
 					array(
 						'type' => 'select',                             
 						'label' => 'Medio de pago:',       
 						'name' => 'payment_method',
 						'required' => true,              
 						'options' => array(
-							'query' => $paymentMethodList,          
-							'id' => 'id_medio',                   
-							'name' => 'name'           
+								'query' => \Promos::makeOptions(1),
+								'id' => 'id_option',
+								'name' => 'name'
 						)
 					),
 					array(
@@ -927,6 +928,7 @@ class AdminFieldForm {
 						'type' => 'select',
 						'label' =>'Días habilitados',
 						'name' =>  'id_days',
+                                                'id'   =>  'id_days',
 						'multiple' => true ,
 						'options' => array(
 							'query' => $days,
@@ -956,6 +958,7 @@ class AdminFieldForm {
 						'type' => 'select',
 						'label' =>'Cuotas',
 						'name' =>  'id_installment',
+                                                'id'=>'id_installment',
 						'multiple' => true ,
 						'options' => array(
 							'query' => $installment,
@@ -974,7 +977,7 @@ class AdminFieldForm {
 						'type' => 'text',
 						'label' =>'Tasa directa',
 						'name' =>  'coeficient',
-						'desc' => 'Valor informado por el medio de pago que debe aplicarse a cada plan de cuotas (ejemplo: "23.5")',
+						'desc' => 'Valor informado por el medio de pago que debe aplicarse a cada plan de cuotas (ejemplo: "1.5" sí se quiere informar un 50%)',
 						'required' => true,
 					),
 					array(

@@ -22,7 +22,7 @@
 							'CREATE TABLE IF NOT EXISTS `'._DB_PREFIX_.'decidir_tokens'.'`(
 									`id` INT(11) UNSIGNED NOT NULL AUTO_INCREMENT,
 									`user_id` VARCHAR(255) NULL DEFAULT NULL,
-									`name` VARCHAR(255) NULL DEFAULT NULL,
+									`name` VARCHAR(255) COLLATE ucs2_spanish_ci NOT NULL,
 									`marca_id` INT(11) UNSIGNED NOT NULL,
 									`banco_id` INT(11) UNSIGNED NOT NULL,
 									`token` VARCHAR(255) NULL DEFAULT NULL,
@@ -37,22 +37,22 @@
 							)',
 							'CREATE TABLE IF NOT EXISTS `'._DB_PREFIX_.'medios'.'`(
 									`id_medio` INT(10) UNSIGNED NOT NULL AUTO_INCREMENT,
-									`name` VARCHAR(50),
-									`type` VARCHAR(50) NOT NULL,
+									`name` VARCHAR(50) COLLATE ucs2_spanish_ci NOT NULL,
+									`type` VARCHAR(50) COLLATE ucs2_spanish_ci NOT NULL,
 									`id_decidir` INT(10) UNSIGNED NOT NULL,
 									`active` INT(1) UNSIGNED NOT NULL,
 									PRIMARY KEY (`id_medio`)
 							)',
 							'CREATE TABLE IF NOT EXISTS `'._DB_PREFIX_.'entidades'.'`(
 									`id_entidad` INT UNSIGNED NOT NULL AUTO_INCREMENT,
-									`name` VARCHAR(50),
+									`name` VARCHAR(50) COLLATE ucs2_spanish_ci NOT NULL,
 									`active` INT(1) UNSIGNED NOT NULL,
 									PRIMARY KEY (`id_entidad`),
 									UNIQUE `name` (`name`)
 							)',
 							'CREATE TABLE IF NOT EXISTS `'._DB_PREFIX_.'promociones'.'`(
 									`id_promocion` INT UNSIGNED NOT NULL AUTO_INCREMENT,
-									`name` TEXT,
+									`name` VARCHAR(100) COLLATE ucs2_spanish_ci NOT NULL,
 									`payment_method` INT(11) NOT NULL,
 									`entity` INT(11) NOT NULL,
 									`send_installment` INT(11),
@@ -122,7 +122,7 @@
 						'INSERT INTO `'._DB_PREFIX_.'medios` (name, type, id_decidir, active) VALUES("Visa Débito","Tarjeta",31,0)',
 						'INSERT INTO `'._DB_PREFIX_.'medios` (name, type, id_decidir, active) VALUES("CoopePlus","Tarjeta",34,0)',
 						'INSERT INTO `'._DB_PREFIX_.'medios` (name, type, id_decidir, active) VALUES("Nexo","Tarjeta",37,0)',
-						'INSERT INTO `'._DB_PREFIX_.'medios` (name, type, id_decidir, active) VALUES("'.utf8_encode("Credim\E1s").'","Tarjeta",38,0)',
+						'INSERT INTO `'._DB_PREFIX_.'medios` (name, type, id_decidir, active) VALUES("'.utf8_encode("Credimás").'","Tarjeta",38,0)',
 						'INSERT INTO `'._DB_PREFIX_.'medios` (name, type, id_decidir, active) VALUES("Tarjeta Nevada","Tarjeta",39,1)',
 						'INSERT INTO `'._DB_PREFIX_.'medios` (name, type, id_decidir, active) VALUES("Nativa","Tarjeta",42,0)',
 						'INSERT INTO `'._DB_PREFIX_.'medios` (name, type, id_decidir, active) VALUES("'.utf8_encode("Tarjeta Cencosud").'","Tarjeta",43,0)',
@@ -135,7 +135,7 @@
 						'INSERT INTO `'._DB_PREFIX_.'medios` (name, type, id_decidir, active) VALUES("'.utf8_encode("Tarjeta Club Dia").'","Tarjeta",56,1)',
 						'INSERT INTO `'._DB_PREFIX_.'medios` (name, type, id_decidir, active) VALUES("Tuya","Tarjeta",59,0)',
 						'INSERT INTO `'._DB_PREFIX_.'medios` (name, type, id_decidir, active) VALUES("Distribution","Tarjeta",60,0)',
-						'INSERT INTO `'._DB_PREFIX_.'medios` (name, type, id_decidir, active) VALUES("'.utf8_encode("Tarjeta La An\F3nima").'","Tarjeta",61,1)',
+						'INSERT INTO `'._DB_PREFIX_.'medios` (name, type, id_decidir, active) VALUES("'.utf8_encode("Tarjeta La Anónima").'","Tarjeta",61,1)',
 						'INSERT INTO `'._DB_PREFIX_.'medios` (name, type, id_decidir, active) VALUES("CrediGuia","Tarjeta",62,0)',
 						'INSERT INTO `'._DB_PREFIX_.'medios` (name, type, id_decidir, active) VALUES("Tarjeta SOL","Tarjeta",64,0)',
 						'INSERT INTO `'._DB_PREFIX_.'medios` (name, type, id_decidir, active) VALUES("MasterCard Debit","Tarjeta",66,0)',
@@ -144,7 +144,8 @@
 						'INSERT INTO `'._DB_PREFIX_.'medios` (name, type, id_decidir, active) VALUES("Maestro","Tarjeta",99,0)',
 						'INSERT INTO `'._DB_PREFIX_.'medios` (name, type, id_decidir, active) VALUES("Favacard","Tarjeta",103,0)',
 						'INSERT INTO `'._DB_PREFIX_.'entidades` (name, active) VALUES("BANCO DE GALICIA Y BUENOS AIRES S.A.",1)',
-						'INSERT INTO `'._DB_PREFIX_.'entidades` (name, active) VALUES("'.utf8_encode("BANCO DE LA NACI\D3N ARGENTINA").'",1)',
+						'INSERT INTO `'._DB_PREFIX_.'entidades` (name, active) VALUES(
+						"BANCO DE LA NACIÓN ARGENTINA",1)',
 						'INSERT INTO `'._DB_PREFIX_.'entidades` (name, active) VALUES("BANCO DE LA PROVINCIA DE BUENOS AIRES",1)',
 						'INSERT INTO `'._DB_PREFIX_.'entidades` (name, active) VALUES("STANDARD BANK ARGENTINA S.A. - ICBC",1)',
 						'INSERT INTO `'._DB_PREFIX_.'entidades` (name, active) VALUES("CITIBANK N.A.",1)',

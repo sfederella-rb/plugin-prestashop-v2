@@ -12,6 +12,7 @@ Class DecidirPaymentSelect
         $sql = 'SELECT * FROM ' . _DB_PREFIX_ . 'promociones WHERE payment_method = '.$pMethod.' AND entity = '.$entity.' AND active = 1 AND (init_date IS NULL OR NOW() >= init_date) AND (final_date IS NULL OR NOW() <= final_date)';
 
         $result = Db::getInstance()->ExecuteS($sql);
+
         return $result;     
     }
 

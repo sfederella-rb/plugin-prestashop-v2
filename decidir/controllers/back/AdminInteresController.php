@@ -1,5 +1,6 @@
 <?php
 require_once (dirname(__FILE__) . '/../../../../config/config.inc.php');
+include_once(dirname(__FILE__) .'/../../classes/Medios.php');
 
 class AdminInteresController extends AdminController
 {   
@@ -7,13 +8,16 @@ class AdminInteresController extends AdminController
 
     public $urlAddBank = "";
 
-    public $sectionTitle = "INTERES";
+    public $name = "";
 
-    public $name = '';
+    public $sectionTitle = "INTERES";
 
     public function __construct()
     {
-        //
+        //parent::__construct();
+         if($_GET['controller'] == 'AdminModules' && $_GET['configure'] == 'decidir'){
+            parent::__construct();
+        }
     }    
 
     public function renderListInteres($idPaymentMethod){
@@ -94,8 +98,9 @@ class AdminInteresController extends AdminController
         return $helper->generateList($list, $this->fields_list);
     }
 
-    public function renderSelect(){   
-        $CreditCardList = $this->getAllPMethods();
+    public function renderSelect(){  
+        $intancePayment = new MediosCore();
+        $CreditCardList = $intancePayment->getAllPMethods();
         $selectFieldOptions = "";
 
         if(!empty($CreditCardList)){
@@ -130,7 +135,7 @@ class AdminInteresController extends AdminController
         
         return $result;     
     }
-
+    
     public function getAllPMethods(){
         $sql = 'SELECT id_medio AS id, name, id_decidir FROM ' . _DB_PREFIX_ . 'medios WHERE type="Tarjeta" AND active=1';
         $result = Db::getInstance()->ExecuteS($sql);
@@ -173,6 +178,6 @@ class AdminInteresController extends AdminController
     }
 
     public function deleteInteres($idInteres){  
-        Db::getInstance()->delete(_DB_PREFIX_.'interes', 'id_interes='.$idInteres);
+        Db::getInstance()->delete('interes', 'id_interes='.$idInteres);
     }
 }

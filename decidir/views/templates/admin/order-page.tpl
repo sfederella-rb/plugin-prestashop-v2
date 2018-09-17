@@ -33,7 +33,6 @@
 			    },
 			 	success: function(data){
 			 		//alert(data);
-			 		console.log(data);
 			 		$('#message_refund').text(data);
 			 		$("#loader").hide();
 			    },

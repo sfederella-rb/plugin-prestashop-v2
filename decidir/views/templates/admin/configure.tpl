@@ -59,25 +59,38 @@
 		$("#id_medio").hide();
 		$("#id_promocion").hide();
 		$("#id_interes").hide();
+                                
+                {if isset($smarty.get.update_promocion) || isset($smarty.get.add_promocion) }                     
+                    loop_section("cms_planes", "tab6");
+                {/if}
+                    
+                {if isset($smarty.get.update_interes) }                     
+                    loop_section("cms_interes", "tab7");
+                {/if}
 
-		//script seccion add promociones
-		var urlAjax = "{$url_base}modules/decidir/ajax/back/ajaxadminloadpromos.php";
+                {*
+                
+                    //script seccion add promociones
+                    var urlAjax = "{$url_base}modules/decidir/ajax/back/ajaxadminloadpromos.php";
 
-		$.ajax({
-			url: urlAjax,
-			type: 'get',
-			dataType: "json",
-			data: {
-				ajax_payment_method: 1
-			},
-			success: function(dataResponse){
-				$("#promo_type").attr("selected","selected");
-				$("#payment_method")[0].options.length = 0;
-				$.each(dataResponse, function (key, data) {
-				    $("#payment_method").append("<option value='"+data.id+"''>"+data.name+"</option>");
-				})
-			} 
-		});
+                    $.ajax({
+                            url: urlAjax,
+                            type: 'get',
+                            dataType: "json",
+                            data: {
+                                    ajax_payment_method: 1
+                            },
+                            success: function(dataResponse){
+                                    $("#promo_type").attr("selected","selected");
+                                    $("#payment_method")[0].options.length = 0;
+
+                                    $.each(dataResponse, function (key, data) {
+                                        //$("#payment_method").append("<option value='"+data.id+"''>"+data.name+"</option>");
+                                    })
+                            } 
+                    });
+                
+                *}                    
 
 		$("#promo_type").change(function(){
 
@@ -143,7 +156,6 @@
 		  $("#pmethod_select_interes").hide();		
 		}
 
-
 		function loop_section(contentindex, tab){
 
 			//index of section
@@ -181,6 +193,25 @@
 						              });
     });
 </script>
+
+<script>
+    $(document).ready(function(){
+        
+            function populateMultiSelect(data,selector){
+                $.each(data.split(','), function(i,e){
+                    $(selector+" option[value='" + e + "']").prop("selected", true);
+                });
+            }
+            
+            var dataDays="{$id_days}";
+            var dataInstallments="{$id_installments}";
+            
+            populateMultiSelect(dataDays,"#id_days");
+            populateMultiSelect(dataInstallments,"#id_installment");
+        
+    });
+</script>
+
 <!-- Tab nav -->
 <style>
 	@media (max-width: 992px) {

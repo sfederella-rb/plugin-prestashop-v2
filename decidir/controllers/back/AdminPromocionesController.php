@@ -1,5 +1,6 @@
 <?php
 require_once(dirname(__FILE__).'../../../../../config/config.inc.php');
+include_once(dirname(__FILE__) .'/../../classes/Promociones.php');
 
 class AdminPromocionesController extends AdminController
 {	
@@ -7,12 +8,16 @@ class AdminPromocionesController extends AdminController
 
     public $urlAddBank = "";
 
-    PUBLIC $sectionTitle = "PLANES DE PAGO";
-
     public $name = "";
+
+    public $sectionTitle = "PLANES DE PAGO";
+    
     public function __construct()
     {
-        //
+        //parent::__construct();
+        if($_GET['controller'] == 'AdminModules' && $_GET['configure'] == 'decidir'){
+            parent::__construct();
+        }
     }   
 
     public function renderListPromociones(){
@@ -217,31 +222,15 @@ class AdminPromocionesController extends AdminController
 
     public function deletePromocion($idPromocion){
 
-        Db::getInstance()->delete(_DB_PREFIX_.'promociones', 'id_promocion='.$idPromocion);
-    }
-
-    public function getNumberCodes($CodesValues){
-        $result = 0;
-        $suma = $CodesValues;        
-        $array_codes = array();
-
-        do{ 
-            $result = (int)pow(2, (int)(log($suma)/log(2)));
-            
-            $suma = $suma - $result; 
-            array_push($array_codes, $result);   
-            
-        }while($suma > 0); 
-
-        $array_codes_reverse = array_reverse($array_codes);
-
-        return $array_codes_reverse;
+        Db::getInstance()->delete('promociones', 'id_promocion='.$idPromocion);
     }
 
     public function getDaysList($result){
 
+        $instanceEntity = new PromocionesCore();
+
         foreach($result as $indexPromo => $value){
-            $daysCodes = $this->getNumberCodes($result[$indexPromo]['days']);
+            $daysCodes = $instanceEntity->getNumberCodes($result[$indexPromo]['days']);
 
             $daysNamesList = array();
 
@@ -279,13 +268,16 @@ class AdminPromocionesController extends AdminController
     }
 
     public function getInstallmentList($result){
+
+        $instancePromo = new PromocionesCore();
+
         foreach($result as $indexPromo => $value){
-            $installmentCodes = $this->getNumberCodes($result[$indexPromo]['installment']);
+            $installmentCodes = $instancePromo->getNumberCodes($result[$indexPromo]['installment']);
             $installmentNamesList = array();
 
             foreach($installmentCodes as $code){
                 if(in_array($code, $installmentCodes)){
-                    $indexArray = array_search($code, $this->numberInstallmentList());   
+                    $indexArray = array_search($code, $instancePromo->numberInstallmentList());   
                     array_push($installmentNamesList, $indexArray);        
                 }
             }
@@ -317,34 +309,5 @@ class AdminPromocionesController extends AdminController
         }    
 
         return $result;
-    }
-
-    public function numberDayList(){
-        //return a array with days and bits 
-        $days = array();
-        $val = 1;
-        $places = 1;
-
-        for($index=0; $index<=6; $index++){
-            $days[$index] = $val;                   
-            $res = $val << $places;
-            $val = $res;
-        }
-
-        return $days;
-    }
-
-    public function numberInstallmentList(){
-        $installment = array();
-        $val = 1;
-        $places = 1;
-
-        for($index=0; $index<=24; $index++){
-            $installment[$index] = $val;                   
-            $res = $val << $places;
-            $val = $res;
-        }
-
-        return $installment;
     }
 }

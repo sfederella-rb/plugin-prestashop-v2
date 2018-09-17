@@ -106,11 +106,11 @@ function sendFormFunc(event) {
     <ul>
       <li>
         <label for="token">Tarjeta tokenizada:</label>
-        <input type="text"  data-decidir="token" placeholder="xxxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxx" value="d666c2da-909d-4912-8c56-44abee399b3d"/>
+        <input type="text"  data-decidir="token" placeholder="xxxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxx" value=""/>
       </li>
       <li>
         <label for="security_code">Codigo de seguridad:</label>
-        <input type="text"  data-decidir="security_code" placeholder="XXX" value="775" />
+        <input type="text"  data-decidir="security_code" placeholder="" value="" />
       </li>
     </ul>
     <input type="submit" value="Generar Token" />
