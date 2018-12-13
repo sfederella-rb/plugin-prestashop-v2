@@ -18,6 +18,14 @@ Class DecidirPaymentformModuleFrontController extends ModuleFrontController
 		
 	    parent::initContent();
 
+	    if (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] != 'off') {
+		    // SSL connection
+		}
+
+	    $protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? "https://" : "http://";
+    	$domainName = $_SERVER['HTTP_HOST'];
+
+
 		$smarty->assign(array(
 			'jsLinkForm' => $this->getJsForm(),
 			'endpoint' => $this->getEndpoint(),
@@ -29,7 +37,7 @@ Class DecidirPaymentformModuleFrontController extends ModuleFrontController
 			'total' => $this->getTotal(),
 			'currency' => $this->getCurrency(),
 			'pmethod' => $this->getPaymentMethod(),
-			'url_base' => _PS_BASE_URL_.__PS_BASE_URI__
+			'url_base' => $protocol.$domainName.__PS_BASE_URI__
 		));
 
         if (version_compare(_PS_VERSION_, '1.7.0.0') >= 0 ) {

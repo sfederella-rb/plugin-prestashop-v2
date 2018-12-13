@@ -37,13 +37,16 @@ Class DecidirPaymentConfirmModuleFrontController extends ModuleFrontController
 
 		$estadoDenegada = Module::getInstanceByName('decidir')->getOrderStatesModulo('DENEGADA');
 
+		$protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? "https://" : "http://";
+    	$domainName = $_SERVER['HTTP_HOST'];
+
 		//corregir esto de abajo
 	    if($state != $estadoDenegada){
 
 			$smarty->assign(
 						array(
 							'order_ref' => $order->reference,
-							'url_orderdetails' => _PS_BASE_URL_.__PS_BASE_URI__.'?controller=order-detail&id_order='.$orderID[0]['id_order'],
+							'url_orderdetails' => $protocol.$domainName.__PS_BASE_URI__.'?controller=order-detail&id_order='.$orderID[0]['id_order'],
 							'status' => 'ok',
 							'status_desc' => $state,
 							'version' => $version

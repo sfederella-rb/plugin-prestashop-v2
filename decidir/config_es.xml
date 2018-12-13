@@ -2,7 +2,7 @@
 <module>
 	<name>decidir</name>
 	<displayName><![CDATA[Decidir]]></displayName>
-	<version><![CDATA[1.1.2]]></version>
+	<version><![CDATA[1.2.2]]></version>
 	<description><![CDATA[Decidir, medios de pago on-line.]]></description>
 	<author><![CDATA[Prisma]]></author>
 	<tab><![CDATA[payments_gateways]]></tab>

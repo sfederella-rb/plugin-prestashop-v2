@@ -62,7 +62,7 @@ class Decidir extends PaymentModule
 		//module info
 		$this->name = 'decidir';
 		$this->tab = 'payments_gateways';
-		$this->version = '1.1.2';
+		$this->version = '1.2.2';
 		$this->author = 'Prisma';
 		$this->need_instance = 1;
 		$this->ps_versions_compliancy = array('min' => '1.6.0', 'max' => _PS_VERSION_); 
@@ -222,10 +222,13 @@ class Decidir extends PaymentModule
 			$index_section = 1;
 		}  
 
+		$protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? "https://" : "http://";
+    	$domainName = $_SERVER['HTTP_HOST'];
+
 		$this->context->smarty->assign(array(
 			'module_dir' 	 	  => $this->_path,
 			'version'    	 	  => $this->version,
-			'url_base'                => _PS_BASE_URL_.__PS_BASE_URI__,
+			'url_base'            => $protocol.$domainName.__PS_BASE_URI__,
 			'section_adminpage'	  => $index_section, 
 			'config_general' 	  => $this->renderConfigForms(),
 			'config_cybersource'      => $this->renderCyberSourcePage(),
