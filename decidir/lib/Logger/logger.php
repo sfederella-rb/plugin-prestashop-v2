@@ -98,8 +98,8 @@ class DecidirPagoLogger {
 				throw new Exception("Logger Configuracion incompleta");
 			if($this->customer != null)
 				LoggerMDC::put('customer', $this->customer);
-			else
-				throw new Exception("Logger Configuracion incompleta");
+			//else
+				//throw new Exception("Logger Configuracion incompleta");
 			if($this->order != null)
 				LoggerMDC::put('order', $this->order);
 			else

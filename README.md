@@ -35,6 +35,7 @@ Observaci&oacute;n:
 Descomentar: <em>extension=php_openssl.dll</em> y <em>extension=php_curl.dll</em> del php.ini.
 
 <br />
+
 [<sub>Volver a inicio</sub>](#inicio)
 
 <a name="configuracion"></a>

@@ -62,7 +62,7 @@ class Decidir extends PaymentModule
 		//module info
 		$this->name = 'decidir';
 		$this->tab = 'payments_gateways';
-		$this->version = '1.2.2';
+		$this->version = '1.2.4';
 		$this->author = 'Prisma';
 		$this->need_instance = 1;
 		$this->ps_versions_compliancy = array('min' => '1.6.0', 'max' => _PS_VERSION_); 
@@ -141,7 +141,11 @@ class Decidir extends PaymentModule
 
 		if($payment) {
 			$logger->setEndPoint($endpoint);
-			$logger->setCustomer($cart->id_customer);
+
+			if($cart->id_customer){
+				$logger->setCustomer($cart->id_customer);
+			}
+
 			$logger->setOrder($cart->id);
 		}
 
@@ -873,16 +877,52 @@ class Decidir extends PaymentModule
 			$promoDaysList = $promo->numberDayList();
 
 			$currentDay = date('w');
-			//filtro por dia
-		
-			foreach($interestResultList as $index => $installment){
-				$days = $interestResultList[$index]['days'];
-				$promoDaysResult = $promo->getNumberCodes($days);
-			}
 
 			//filtro por cuotas
 			$finalListInstallment = array();
 			foreach($interestResultList as $index => $installment){
+				//Filtro por días
+				$days = $interestResultList[$index]['days'];
+				$promoDaysResult = $promo->getNumberCodes($days);
+
+				$flagDiaActivado = false;
+				foreach($promoDaysResult as $promoDR){
+	                switch ($promoDR) {
+	                    case 1:
+	                        $dia = 0;
+	                        break;
+	                    case 2:
+	                        $dia = 1;
+	                        break;
+	                    case 4:
+	                        $dia = 2;
+	                        break;
+	                    case 8:
+	                        $dia = 3;
+	                        break;
+	                    case 16:
+	                        $dia = 4;
+	                        break;  
+	                    case 32:
+	                        $dia = 5;
+	                        break;
+	                    case 64:
+	                        $dia = 6;
+	                        break;                 
+	                }
+
+	                if($currentDay == $dia){
+	                	//echo "coincidió el día"
+	                	$flagDiaActivado = true;
+	                }					
+				}				
+				if(!$flagDiaActivado){
+					continue;
+				}
+				// /Filtro por días
+
+
+				
 				$installment = $interestResultList[$index]['installment'];
 				$promoInstResult = $promo->getNumberCodes($installment);	
 
